@@ -23,6 +23,16 @@ import yt_dlp
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+# Sicherstellen, dass der templates-Ordner existiert
+if not os.path.exists("templates"):
+    os.makedirs("templates")
+
+# Sicherstellen, dass index.html existiert
+index_html_path = "templates/index.html"
+if not os.path.exists(index_html_path):
+    with open(index_html_path, "w", encoding="utf-8") as f:
+        f.write("<h1>Willkommen bei TMP-Networks Search</h1>")
+
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
