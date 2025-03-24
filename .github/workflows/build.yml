@@ -111,14 +111,6 @@ jobs:
           kill $PID || true
         shell: bash
 
-      - name: Verify Resources
-        run: |
-          ls templates
-          ls web_index.db || echo "DB not created"
-          ls chrome
-          ls drivers
-        shell: bash
-
       # --- Build Executable ---
       - name: Build Executable (Linux)
         if: runner.os == 'Linux'
