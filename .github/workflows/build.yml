@@ -41,8 +41,17 @@ jobs:
         run: |
           ls templates
           ls web_index.db || echo "Datenbank existiert nicht"
-          ls drivers || echo "Drivers existieren nicht"
           ls chrome || echo "Portable Chrome existiert nicht"
+        shell: bash
+
+      # Sicherstellen, dass der Ordner "drivers" existiert – falls nicht, lege ihn mit einer Dummy-Datei an.
+      - name: Ensure drivers folder exists
+        run: |
+          if [ ! -d drivers ]; then
+            mkdir drivers
+            echo "dummy" > drivers/dummy.txt
+          fi
+          ls drivers
         shell: bash
 
       - name: Build Executable on Unix (Linux/macOS)
