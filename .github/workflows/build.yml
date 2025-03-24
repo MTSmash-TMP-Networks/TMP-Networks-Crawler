@@ -53,10 +53,10 @@ jobs:
       - name: Install ChromeDriver
         run: |
           # Ermitteln der Chrome-Version
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ] || [ "${{ matrix.os }}" == "macos-latest" ]; then
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]] || [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            CHROME_VERSION=$(googlechrome --version | Select-String -Pattern '\d+\.\d+\.\d+' | ForEach-Object { $_.Matches[0].Value })
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            CHROME_VERSION=$(googlechrome --version | grep -oP '\d+\.\d+\.\d+')
           fi
 
           echo "Chrome Version: $CHROME_VERSION"
@@ -67,19 +67,19 @@ jobs:
           echo "ChromeDriver Version: $CHROMEDRIVER_VERSION"
 
           # Herunterladen und Installieren von ChromeDriver
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
             wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
             unzip chromedriver_linux64.zip
             sudo mv chromedriver /usr/local/bin/
             sudo chmod +x /usr/local/bin/chromedriver
             rm chromedriver_linux64.zip
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
             wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_mac64.zip
             unzip chromedriver_mac64.zip
             sudo mv chromedriver /usr/local/bin/
             sudo chmod +x /usr/local/bin/chromedriver
             rm chromedriver_mac64.zip
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
+          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
             Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
             Expand-Archive -Path chromedriver_win32.zip -DestinationPath ./chromedriver
             Move-Item -Path ./chromedriver/chromedriver.exe -Destination "C:\Windows\System32\chromedriver.exe"
@@ -98,8 +98,11 @@ jobs:
       # Schritt 7: (Optional) Starten der Anwendung
       - name: Run Application
         run: |
-          # Diese Aktion startet die Anwendung. In einer CI-Umgebung ist dies normalerweise nicht erforderlich.
-          # Falls erforderlich, können Sie diesen Schritt anpassen.
-          # Beispiel:
-          # python your_script.py &
-          echo "Anwendung starten (nur zur Demonstration)."
+          # Starten Sie Ihre Anwendung, um sicherzustellen, dass sie ohne Fehler initialisiert wird.
+          # Dies kann durch das Ausführen von main.py erfolgen.
+          # Bitte passen Sie den Befehl entsprechend an, falls zusätzliche Parameter erforderlich sind.
+          python main.py &
+          # Warten Sie einige Sekunden, damit die Anwendung starten kann
+          sleep 5
+          # Überprüfen Sie, ob der Flask-Server läuft (optional)
+          curl -I http://localhost:7001
