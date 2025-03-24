@@ -1704,22 +1704,10 @@ with open("templates/search_results_task.html", "w", encoding="utf-8") as f:
 
 # --- Hauptblock ---
 if __name__ == "__main__":
-    if "--generate-templates" in sys.argv:
-        # Erstelle Templates und beende dann
-        if not os.path.exists("templates"):
-            os.makedirs("templates")
-        index_html_path = "templates/index.html"
-        if not os.path.exists(index_html_path):
-            with open(index_html_path, "w", encoding="utf-8") as f:
-                f.write("<h1>Willkommen bei TMP-Networks Search</h1>")
-        # Weitere Template-Erzeugungen falls nötig…
-        print("Templates wurden generiert.")
-        sys.exit(0)
-    
-    # Starte Hintergrund-Threads usw.
+    # Starte Hintergrund-Threads, Registrierungen usw.
     threading.Thread(target=poll_for_tasks, daemon=True).start()
     threading.Thread(target=heartbeat, daemon=True).start()
     register_crawler()
-    
-    # Starte Flask ohne Debug und ohne ReLoader, damit nur eine Instanz läuft:
+
+    # Wichtiger Hinweis: Debug und ReLoader ausschalten!
     app.run(debug=False, host="0.0.0.0", port=7001, use_reloader=False)
