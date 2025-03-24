@@ -58,15 +58,14 @@ jobs:
 
       # Schritt 5: **Sicherstellen, dass die Templates und statischen Dateien existieren**
       - name: Ensure templates and static folders exist
+        shell: bash
         run: |
-          if [ "$RUNNER_OS" == "Windows" ]; then
-            New-Item -ItemType Directory -Path templates, static -Force
-            New-Item -ItemType File -Path templates/index.html -Force
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            pwsh -Command "& { New-Item -ItemType Directory -Path templates, static -Force; New-Item -ItemType File -Path templates/index.html -Force }"
           else
             mkdir -p templates static
             touch templates/index.html
           fi
-        shell: bash
 
       # Schritt 6: **Erstellen einer ausführbaren Datei mit PyInstaller**
       - name: Build Executable on Ubuntu
