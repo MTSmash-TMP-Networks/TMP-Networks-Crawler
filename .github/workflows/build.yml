@@ -89,11 +89,11 @@ jobs:
             if [[ "$arch" == "arm64" ]]; then
               wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
               unzip chrome.zip -d chrome
-              mv chrome/chrome-mac-arm64 chrome/Chrome.app
+              mv chrome/chrome-mac-arm64 Chrome.app chrome/Chrome.app
             else
               wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome.zip
               unzip chrome.zip -d chrome
-              mv chrome/chrome-mac-x64 chrome/Chrome.app
+              mv chrome/chrome-mac-x64 Chrome.app chrome/Chrome.app
             fi
             rm chrome.zip
           fi
@@ -131,10 +131,10 @@ jobs:
       - name: Verify Resources on Unix
         if: matrix.os != 'windows-latest'
         run: |
-          ls templates
-          ls web_index.db || echo "No DB"
-          ls chrome
-          ls drivers
+          ls -l templates
+          ls -l web_index.db || echo "No DB"
+          ls -l chrome
+          ls -l drivers
         shell: bash
 
       - name: Verify Resources on Windows
@@ -154,6 +154,7 @@ jobs:
             --add-data "templates:templates" \
             --add-data "web_index.db:." \
             --add-data "drivers:drivers" \
+            --add-data "chrome/Chrome.app:chrome" \
             main.py
         shell: bash
 
@@ -164,24 +165,22 @@ jobs:
             --add-data "templates;templates" ^
             --add-data "web_index.db;." ^
             --add-data "drivers;drivers" ^
+            --add-data "chrome/chrome.exe;chrome" ^
             main.py
         shell: cmd
 
-      # Kopiere zusätzliche Ressourcen separat
-      - name: Copy Chrome App to Dist on macOS
-        if: matrix.os == 'macos-latest'
+      # Sicherstellen der Ausführbarkeit von Chrome auf Linux
+      - name: Make Chrome Executable on Linux
+        if: matrix.os == 'ubuntu-latest'
         run: |
-          mkdir -p dist/chrome
-          cp -R chrome/Chrome.app dist/chrome/
+          chmod +x chrome/chrome/chrome
         shell: bash
 
-      # Sicherstellen der Ausführbarkeit von Chrome auf macOS und Linux
-      - name: Make Chrome Executable on Unix
-        if: matrix.os != 'windows-latest'
+      # Sicherstellen der Ausführbarkeit von Chrome.app auf macOS
+      - name: Make Chrome.app Executable on macOS
+        if: matrix.os == 'macos-latest'
         run: |
-          if [[ "${{ matrix.os }}" != "windows-latest" ]]; then
-            chmod +x chrome/chrome/chrome
-          fi
+          chmod +x chrome/Chrome.app/Contents/MacOS/Google\ Chrome\ for\ Testing
         shell: bash
 
       # Artefakte hochladen
@@ -192,7 +191,7 @@ jobs:
           name: executable-${{ matrix.os }}
           path: |
             dist/main
-            dist/chrome
+            chrome/
 
       - name: Upload Executable Artifact on Windows
         if: matrix.os == 'windows-latest'
