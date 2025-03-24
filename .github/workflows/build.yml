@@ -1,18 +1,15 @@
 name: Build Executable with Chrome and ChromeDriver
-
 on:
   push:
     branches: [ main ]
   pull_request:
     branches: [ main ]
-
 jobs:
   build:
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
-
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
@@ -22,16 +19,25 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Install Dependencies
+      - name: Install Dependencies on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           python -m pip install --upgrade pip
           pip install pyinstaller
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
+      - name: Install Dependencies on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller
+          if (Test-Path "requirements.txt") { pip install -r requirements.txt }
+        shell: pwsh
+
       # ChromeDriver
-      - name: Download ChromeDriver
-        shell: bash
+      - name: Download ChromeDriver on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p drivers
           if [ "${{ runner.os }}" = "Linux" ]; then
@@ -44,16 +50,22 @@ jobs:
             unzip chromedriver.zip -d drivers && mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
             chmod +x drivers/chromedriver
             rm -rf drivers/chromedriver-mac-x64 chromedriver.zip
-          else
-            Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
-            Expand-Archive "chromedriver.zip" -DestinationPath "drivers"
-            Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
-            Remove-Item -Recurse drivers/chromedriver-win64, chromedriver.zip
           fi
+        shell: bash
+
+      - name: Download ChromeDriver on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -Force drivers
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
+          Expand-Archive "chromedriver.zip" -DestinationPath "drivers"
+          Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
+          Remove-Item -Recurse drivers/chromedriver-win64, chromedriver.zip
+        shell: pwsh
 
       # Chrome Portable (komplett!)
-      - name: Download Chrome Portable
-        shell: bash
+      - name: Download Chrome Portable on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           mkdir -p chrome
           if [ "${{ runner.os }}" = "Linux" ]; then
@@ -70,16 +82,22 @@ jobs:
               unzip chrome.zip -d chrome && mv chrome/chrome-mac-x64 chrome/Chrome.app
             fi
             rm chrome.zip
-          else
-            Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
-            Expand-Archive chrome.zip -DestinationPath chrome
-            Move-Item chrome/chrome-win64 chrome/chrome
-            Remove-Item chrome.zip
           fi
         shell: bash
 
+      - name: Download Chrome Portable on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          mkdir -Force chrome
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
+          Expand-Archive chrome.zip -DestinationPath chrome
+          Move-Item chrome/chrome-win64 chrome/chrome
+          Remove-Item chrome.zip
+        shell: pwsh
+
       # Starte kurz um DB & Templates zu erzeugen
-      - name: Start Application to Generate Templates
+      - name: Start Application to Generate Templates on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           python main.py &
           PID=$!
@@ -87,8 +105,17 @@ jobs:
           kill $PID || true
         shell: bash
 
+      - name: Start Application to Generate Templates on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          Start-Process -NoNewWindow -FilePath python -ArgumentList "main.py"
+          Start-Sleep -Seconds 10
+          Stop-Process -Name python -Force
+        shell: pwsh
+
       # Prüfen der Dateien
-      - name: Verify Resources
+      - name: Verify Resources on Unix
+        if: matrix.os != 'windows-latest'
         run: |
           ls templates
           ls web_index.db || echo "No DB"
@@ -96,9 +123,18 @@ jobs:
           ls drivers
         shell: bash
 
+      - name: Verify Resources on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          Get-ChildItem templates
+          if (Test-Path "web_index.db") { Get-ChildItem web_index.db } else { Write-Output "No DB" }
+          Get-ChildItem chrome
+          Get-ChildItem drivers
+        shell: pwsh
+
       # Build
       - name: Build Executable on Unix (Linux/macOS)
-        if: runner.os != 'Windows'
+        if: matrix.os != 'windows-latest'
         run: |
           pyinstaller --onefile \
             --add-data "templates:templates" \
@@ -110,7 +146,7 @@ jobs:
         shell: bash
 
       - name: Build Executable on Windows
-        if: runner.os == 'Windows'
+        if: matrix.os == 'windows-latest'
         run: |
           pyinstaller --onefile ^
             --add-data "templates;templates" ^
