@@ -29,6 +29,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -U --pre "yt-dlp[default]"
+          pip install pyinstaller  # PyInstaller für die Erstellung von ausführbaren Dateien
 
       # Schritt 4: **Google Chrome installieren und überprüfen**
       - name: Install Google Chrome on Ubuntu
@@ -55,22 +56,45 @@ jobs:
             Write-Error "Google Chrome installation failed"; exit 1 
           }
 
-      # Schritt 5: (Optional) Ausführen von Tests
+      # Schritt 5: **Erstellen einer ausführbaren Datei mit PyInstaller**
+      - name: Build Executable on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          pyinstaller --onefile --name main main.py
+
+      - name: Build Executable on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          pyinstaller --onefile --name main main.py
+
+      - name: Build Executable on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          pyinstaller --onefile --name main.exe main.py
+
+      # Schritt 6: (Optional) Ausführen von Tests
       - name: Run Tests
         run: echo "Keine Tests definiert."
 
-      # Schritt 6: Anwendung starten und überprüfen (Unix)
+      # Schritt 7: Anwendung starten und überprüfen (Unix)
       - name: Run Application on Unix
         if: matrix.os != 'windows-latest'
         run: |
-          python main.py &
+          ./dist/main &
           sleep 5
           curl -I http://localhost:7001 || exit 1
 
-      # Schritt 7: Anwendung starten und überprüfen (Windows)
+      # Schritt 8: Anwendung starten und überprüfen (Windows)
       - name: Run Application on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          Start-Process -NoNewWindow -FilePath "python" -ArgumentList "main.py"
+          Start-Process -NoNewWindow -FilePath "./dist/main.exe"
           Start-Sleep -Seconds 5
           curl -I http://localhost:7001 || exit 1
+
+      # Schritt 9: Artefakte speichern (ausführbare Dateien hochladen)
+      - name: Upload Executables
+        uses: actions/upload-artifact@v3
+        with:
+          name: Executables-${{ matrix.os }}
+          path: dist/*
