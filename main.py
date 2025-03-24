@@ -23,6 +23,8 @@ import yt_dlp
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+app = Flask(__name__, template_folder="templates")
+
 # Sicherstellen, dass der templates-Ordner existiert
 if not os.path.exists("templates"):
     os.makedirs("templates")
