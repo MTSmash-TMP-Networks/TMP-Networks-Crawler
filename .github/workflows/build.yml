@@ -34,7 +34,7 @@ jobs:
         run: |
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip -O chromedriver.zip
-          unzip -o chromedriver.zip -d drivers
+          unzip chromedriver.zip -d drivers
           mv drivers/chromedriver-linux64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
           rm -rf drivers/chromedriver-linux64 chromedriver.zip
@@ -45,7 +45,7 @@ jobs:
         run: |
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
-          unzip -o chromedriver.zip -d drivers
+          unzip chromedriver.zip -d drivers
           mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
           rm -rf drivers/chromedriver-mac-x64 chromedriver.zip
@@ -55,10 +55,10 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir drivers
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
-          Expand-Archive -Path "chromedriver.zip" -DestinationPath "drivers"
-          Move-Item -Path "drivers/chromedriver-win64/chromedriver.exe" -Destination "drivers/chromedriver.exe"
-          Remove-Item -Recurse -Force "drivers/chromedriver-win64","chromedriver.zip"
+          Invoke-WebRequest "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile chromedriver.zip
+          Expand-Archive chromedriver.zip -DestinationPath drivers
+          Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
+          Remove-Item -Recurse -Force drivers/chromedriver-win64, chromedriver.zip
         shell: powershell
 
       # --- Portable Chrome herunterladen ---
@@ -71,7 +71,7 @@ jobs:
           rm chrome.zip
         shell: bash
 
-      - name: Download Portable Chrome for macOS (nur Binary!)
+      - name: Download Portable Chrome for macOS
         if: runner.os == 'macOS'
         run: |
           mkdir -p chrome
@@ -79,24 +79,24 @@ jobs:
           if [ "$arch" = "arm64" ]; then
             wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
             unzip chrome.zip -d chrome
+            # Nur die eigentliche Chrome-Binary an den richtigen Ort verschieben:
             mv "chrome/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
-            rm -rf chrome/chrome-mac-arm64 chrome.zip
+            rm -rf "chrome/chrome-mac-arm64" chrome.zip
           else
             wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome.zip
             unzip chrome.zip -d chrome
             mv "chrome/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
-            rm -rf chrome/chrome-mac-x64 chrome.zip
+            rm -rf "chrome/chrome-mac-x64" chrome.zip
           fi
-          chmod +x chrome/chrome
         shell: bash
 
       - name: Download Portable Chrome for Windows
         if: runner.os == 'Windows'
         run: |
           mkdir chrome
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
-          Expand-Archive -Path "chrome.zip" -DestinationPath "chrome"
-          Remove-Item "chrome.zip"
+          Invoke-WebRequest "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile chrome.zip
+          Expand-Archive chrome.zip -DestinationPath chrome
+          Remove-Item chrome.zip
         shell: powershell
 
       # --- App starten für Templates & DB ---
@@ -111,38 +111,38 @@ jobs:
       # --- Verify Resources ---
       - name: Verify Resources
         run: |
-          echo "Templates:" && ls templates
+          echo "Templates:" && ls templates || echo "No templates"
           echo "Database:" && ls web_index.db || echo "Database not found"
-          echo "Portable Chrome:" && ls chrome
-          echo "Drivers:" && ls drivers
+          echo "Portable Chrome:" && ls chrome || echo "No chrome folder"
+          echo "Drivers:" && ls drivers || echo "No drivers folder"
         shell: bash
 
-      # --- Build Executable on macOS ---
-      - name: Build Executable on macOS
-        if: runner.os == 'macOS'
+      # --- Build Executable ---
+      - name: Build Executable on Unix (Linux/macOS)
+        if: runner.os != 'Windows'
         run: |
-          pyinstaller --onefile \
-            --add-data "templates:templates" \
-            --add-data "web_index.db:." \
-            --add-data "drivers:drivers" \
-            --add-data "chrome:chrome" \
-            --codesign-identity="-" \
-            main.py
+          if [ "$(uname)" = "Darwin" ]; then
+            # macOS
+            chmod +x chrome/chrome drivers/chromedriver
+            pyinstaller --onefile \
+              --add-data "templates:templates" \
+              --add-data "web_index.db:." \
+              --add-data "drivers:drivers" \
+              --add-data "chrome:chrome" \
+              --codesign-identity="-" \
+              main.py
+          else
+            # Linux
+            chmod +x chrome/chrome drivers/chromedriver
+            pyinstaller --onefile \
+              --add-data "templates:templates" \
+              --add-data "web_index.db:." \
+              --add-data "drivers:drivers" \
+              --add-data "chrome:chrome" \
+              main.py
+          fi
         shell: bash
 
-      # --- Build Executable on Linux ---
-      - name: Build Executable on Linux
-        if: runner.os == 'Linux'
-        run: |
-          pyinstaller --onefile \
-            --add-data "templates:templates" \
-            --add-data "web_index.db:." \
-            --add-data "drivers:drivers" \
-            --add-data "chrome:chrome" \
-            main.py
-        shell: bash
-
-      # --- Build Executable on Windows ---
       - name: Build Executable on Windows
         if: runner.os == 'Windows'
         run: |
@@ -154,7 +154,6 @@ jobs:
             main.py
         shell: cmd
 
-      # --- Upload Executable Artifact ---
       - name: Upload Executable Artifact
         uses: actions/upload-artifact@v4
         with:
