@@ -1,4 +1,5 @@
 name: Build Executable with Chrome and ChromeDriver
+
 on:
   push:
     branches: [ main ]
@@ -9,44 +10,36 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ ubuntu-latest, windows-latest, macos-latest ]
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
     runs-on: ${{ matrix.os }}
+
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Setup Python 3.11
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
           python-version: '3.11'
 
       - name: Cache Python dependencies
-        uses: actions/cache@v3
+        uses: actions/cache@v4
         with:
           path: ~/.cache/pip
           key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      - name: Install Dependencies on Unix
-        if: matrix.os != 'windows-latest'
+      - name: Install Dependencies
         run: |
           python -m pip install --upgrade pip
           pip install --upgrade pyinstaller
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
         shell: bash
 
-      - name: Install Dependencies on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          python -m pip install --upgrade pip
-          pip install --upgrade pyinstaller
-          if (Test-Path "requirements.txt") { pip install -r requirements.txt }
-        shell: pwsh
-
       # Download ChromeDriver
-      - name: Download ChromeDriver on Unix
-        if: matrix.os != 'windows-latest'
+      - name: Download ChromeDriver
         run: |
           mkdir -p drivers
           if [[ "${{ runner.os }}" == "Linux" ]]; then
@@ -54,150 +47,92 @@ jobs:
             unzip chromedriver.zip -d drivers
             mv drivers/chromedriver-linux64/chromedriver drivers/chromedriver
             chmod +x drivers/chromedriver
-            rm -rf drivers/chromedriver-linux64 chromedriver.zip
+            rm -rf chromedriver.zip drivers/chromedriver-linux64
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
             wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
             unzip chromedriver.zip -d drivers
             mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
             chmod +x drivers/chromedriver
-            rm -rf drivers/chromedriver-mac-x64 chromedriver.zip
+            rm -rf chromedriver.zip drivers/chromedriver-mac-x64
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
+            Expand-Archive "chromedriver.zip" -DestinationPath "drivers"
+            Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
+            Remove-Item -Recurse drivers/chromedriver-win64, chromedriver.zip
           fi
         shell: bash
 
-      - name: Download ChromeDriver on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          mkdir -Force drivers
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
-          Expand-Archive "chromedriver.zip" -DestinationPath "drivers"
-          Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
-          Remove-Item -Recurse drivers/chromedriver-win64, chromedriver.zip
-        shell: pwsh
-
       # Download Chrome Portable
-      - name: Download Chrome Portable on Unix
-        if: matrix.os != 'windows-latest'
+      - name: Download Chrome Portable
         run: |
           mkdir -p chrome
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chrome-linux64.zip -O chrome.zip
             unzip chrome.zip -d chrome
             mv chrome/chrome-linux64 chrome/chrome
+            chmod +x chrome/chrome/chrome
             rm chrome.zip
           elif [[ "${{ runner.os }}" == "macOS" ]]; then
-            arch=$(uname -m)
-            if [[ "$arch" == "arm64" ]]; then
-              wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
-              unzip chrome.zip -d chrome
-              mv chrome/chrome-mac-arm64 Chrome.app chrome/Chrome.app
-            else
-              wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome.zip
-              unzip chrome.zip -d chrome
-              mv chrome/chrome-mac-x64 Chrome.app chrome/Chrome.app
-            fi
+            wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome.zip
+            unzip chrome.zip -d chrome
+            mv chrome/chrome-mac-x64 chrome/Chrome.app
+            chmod +x chrome/Chrome.app/Contents/MacOS/*
             rm chrome.zip
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
+            Expand-Archive chrome.zip -DestinationPath chrome
+            Move-Item chrome/chrome-win64 chrome/chrome
+            Remove-Item chrome.zip
           fi
         shell: bash
 
-      - name: Download Chrome Portable on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          mkdir -Force chrome
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
-          Expand-Archive chrome.zip -DestinationPath chrome
-          Move-Item chrome/chrome-win64 chrome/chrome
-          Remove-Item chrome.zip
-        shell: pwsh
-
-      # Start Application to Generate Templates
-      - name: Start Application to Generate Templates on Unix
-        if: matrix.os != 'windows-latest'
+      # Generate Templates (App kurz starten)
+      - name: Generate Templates
         run: |
           python main.py &
           PID=$!
           sleep 10
-          kill $PID || true
+          kill -9 $PID || true
         shell: bash
-
-      - name: Start Application to Generate Templates on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          Start-Process -NoNewWindow -FilePath python -ArgumentList "main.py"
-          Start-Sleep -Seconds 10
-          Stop-Process -Name python -Force
-        shell: pwsh
 
       # Verify Resources
-      - name: Verify Resources on Unix
-        if: matrix.os != 'windows-latest'
+      - name: Verify Resources
         run: |
           ls -l templates
-          ls -l web_index.db || echo "No DB"
           ls -l chrome
           ls -l drivers
+          [[ -f web_index.db ]] && ls -l web_index.db || echo "No DB generated"
         shell: bash
 
-      - name: Verify Resources on Windows
-        if: matrix.os == 'windows-latest'
+      # Build Executable (PyInstaller)
+      - name: Build Executable
         run: |
-          Get-ChildItem templates
-          if (Test-Path "web_index.db") { Get-ChildItem web_index.db } else { Write-Output "No DB" }
-          Get-ChildItem chrome
-          Get-ChildItem drivers
-        shell: pwsh
-
-      # Build Executable
-      - name: Build Executable on Unix (Linux/macOS)
-        if: matrix.os != 'windows-latest'
-        run: |
-          pyinstaller --onefile \
-            --add-data "templates:templates" \
-            --add-data "web_index.db:." \
-            --add-data "drivers:drivers" \
-            --add-data "chrome/Chrome.app:chrome" \
-            main.py
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pyinstaller --onefile \
+              --add-data "templates:templates" \
+              --add-data "drivers:drivers" \
+              --add-data "chrome/chrome:chrome/chrome" \
+              main.py
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            pyinstaller --onefile \
+              --add-data "templates:templates" \
+              --add-data "drivers:drivers" \
+              --add-data "chrome/Chrome.app:chrome/Chrome.app" \
+              main.py
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            pyinstaller --onefile ^
+              --add-data "templates;templates" ^
+              --add-data "drivers;drivers" ^
+              --add-data "chrome;chrome" ^
+              main.py
+          fi
         shell: bash
 
-      - name: Build Executable on Windows
-        if: matrix.os == 'windows-latest'
-        run: |
-          pyinstaller --onefile ^
-            --add-data "templates;templates" ^
-            --add-data "web_index.db;." ^
-            --add-data "drivers;drivers" ^
-            --add-data "chrome/chrome.exe;chrome" ^
-            main.py
-        shell: cmd
-
-      # Sicherstellen der Ausführbarkeit von Chrome auf Linux
-      - name: Make Chrome Executable on Linux
-        if: matrix.os == 'ubuntu-latest'
-        run: |
-          chmod +x chrome/chrome/chrome
-        shell: bash
-
-      # Sicherstellen der Ausführbarkeit von Chrome.app auf macOS
-      - name: Make Chrome.app Executable on macOS
-        if: matrix.os == 'macos-latest'
-        run: |
-          chmod +x chrome/Chrome.app/Contents/MacOS/Google\ Chrome\ for\ Testing
-        shell: bash
-
-      # Artefakte hochladen
-      - name: Upload Executable Artifact on Unix (Linux/macOS)
-        if: matrix.os != 'windows-latest'
+      # Upload Artifact
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
           name: executable-${{ matrix.os }}
           path: |
-            dist/main
+            dist/*
             chrome/
-
-      - name: Upload Executable Artifact on Windows
-        if: matrix.os == 'windows-latest'
-        uses: actions/upload-artifact@v4
-        with:
-          name: executable-${{ matrix.os }}
-          path: |
-            dist\main.exe
-            chrome
