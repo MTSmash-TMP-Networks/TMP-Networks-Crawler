@@ -39,11 +39,6 @@
 pip install -r requirements.txt
 ```
 
-Falls keine `requirements.txt` vorhanden:
-
-```bash
-pip install flask selenium beautifulsoup4 yt-dlp requests urllib3
-```
 
 ### 📁 Verzeichnisstruktur vorbereiten
 
