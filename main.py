@@ -343,18 +343,16 @@ def get_rendered_html(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # Temp User Data Dir
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
-    # Plattformabhängige Pfade setzen
     system = platform.system()
     if system == "Windows":
         chrome_binary = resource_path("chrome/chrome-win64/chrome.exe")
         driver_path = resource_path("drivers/chromedriver.exe")
-    elif system == "Darwin":  # macOS
-        chrome_binary = resource_path("chrome/Chrome.app/Contents/MacOS/Google Chrome for Testing")
+    elif system == "Darwin":
+        chrome_binary = resource_path("chrome/chrome")
         driver_path = resource_path("drivers/chromedriver")
     else:  # Linux
         chrome_binary = resource_path("chrome/chrome-linux64/chrome")
