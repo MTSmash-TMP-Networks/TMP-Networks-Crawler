@@ -22,6 +22,7 @@ from urllib3.util.retry import Retry
 import yt_dlp
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
 
 app = Flask(__name__, template_folder="templates")
 
