@@ -65,11 +65,35 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: choco upgrade googlechrome -y
 
-      # Schritt 6: Einrichten von ChromeDriver
-      - name: Setup ChromeDriver
-        uses: browser-actions/setup-chromedriver@v1
-        with:
-          version: 'latest'
+      # Schritt 6: **Manuelle Installation von ChromeDriver**
+      - name: Install ChromeDriver on Ubuntu
+        if: matrix.os == 'ubuntu-latest'
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
+          unzip chromedriver_linux64.zip
+          sudo mv chromedriver /usr/local/bin/
+          rm chromedriver_linux64.zip
+
+      - name: Install ChromeDriver on macOS
+        if: matrix.os == 'macos-latest'
+        run: |
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
+          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_mac64.zip"
+          unzip chromedriver_mac64.zip
+          sudo mv chromedriver /usr/local/bin/
+          rm chromedriver_mac64.zip
+
+      - name: Install ChromeDriver on Windows
+        if: matrix.os == 'windows-latest'
+        run: |
+          $chromeVersion = (Get-Command "C:\Program Files\Google\Chrome\Application\chrome.exe").FileVersionInfo.FileVersion.Split(".")[0]
+          $driverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeVersion"
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$driverVersion/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
+          Expand-Archive -Path "chromedriver_win32.zip" -DestinationPath "C:\Windows\System32"
+          Remove-Item "chromedriver_win32.zip"
 
       # Schritt 7: Überprüfen der Chrome- und ChromeDriver-Versionen
       - name: Check Chrome and ChromeDriver versions
