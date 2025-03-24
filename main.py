@@ -342,9 +342,7 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-
-    user_data_dir = tempfile.mkdtemp()
-    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
+    chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
     system = platform.system()
@@ -359,10 +357,8 @@ def get_rendered_html(url):
         driver_path = resource_path("drivers/chromedriver")
 
     chrome_options.binary_location = chrome_binary
-    service = Service(executable_path=driver_path)
-
+    service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
-
     try:
         driver.get(url)
         time.sleep(3)
@@ -370,9 +366,8 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
-        shutil.rmtree(user_data_dir, ignore_errors=True)
-
     return html, logs
+
 	
 def extract_video_url_from_logs(logs):
     for entry in logs:
