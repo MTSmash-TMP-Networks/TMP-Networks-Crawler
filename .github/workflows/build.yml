@@ -1,4 +1,4 @@
-name: Build Executable with Dynamic Templates, Database and Portable Chrome
+name: Build Executable with Dynamic Templates, Database, Portable Chrome and Automatic ChromeDriver
 
 on:
   push:
@@ -28,7 +28,37 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Starte die App, damit die Templates (und ggf. initiale DB-Struktur) generiert werden.
+      # Download ChromeDriver automatisch – Version 114.0.5735.90 (anpassen, falls nötig)
+      - name: Download ChromeDriver for Linux
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p drivers
+          wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip -O chromedriver.zip
+          unzip -o chromedriver.zip -d drivers
+          chmod +x drivers/chromedriver
+          rm chromedriver.zip
+        shell: bash
+
+      - name: Download ChromeDriver for macOS
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p drivers
+          wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_mac64.zip -O chromedriver.zip
+          unzip -o chromedriver.zip -d drivers
+          chmod +x drivers/chromedriver
+          rm chromedriver.zip
+        shell: bash
+
+      - name: Download ChromeDriver for Windows
+        if: runner.os == 'Windows'
+        run: |
+          mkdir drivers
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_win32.zip" -OutFile "chromedriver.zip"
+          Expand-Archive -Path "chromedriver.zip" -DestinationPath "drivers"
+          Remove-Item "chromedriver.zip"
+        shell: powershell
+
+      # Starte die App, damit dynamisch die Templates (und ggf. DB) generiert werden.
       - name: Start Application to Generate Templates
         run: |
           python main.py &
@@ -37,20 +67,11 @@ jobs:
           kill $PID || true
         shell: bash
 
-      - name: Verify Templates, DB, Drivers and Portable Chrome
+      - name: Verify Resources
         run: |
           ls templates
-          ls web_index.db || echo "Datenbank existiert nicht"
-          ls chrome || echo "Portable Chrome existiert nicht"
-        shell: bash
-
-      # Sicherstellen, dass der Ordner "drivers" existiert – falls nicht, lege ihn mit einer Dummy-Datei an.
-      - name: Ensure drivers folder exists
-        run: |
-          if [ ! -d drivers ]; then
-            mkdir drivers
-            echo "dummy" > drivers/dummy.txt
-          fi
+          ls web_index.db || echo "Database not found"
+          ls chrome || echo "Portable Chrome not found"
           ls drivers
         shell: bash
 
@@ -67,7 +88,7 @@ jobs:
         shell: cmd
 
       - name: Upload Executable Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v2
         with:
           name: executable-${{ matrix.os }}
           path: dist/main*
