@@ -42,7 +42,7 @@ jobs:
         shell: bash
 
       - name: Download ChromeDriver for macOS
-        if: runner.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
@@ -75,7 +75,7 @@ jobs:
         shell: bash
 
       - name: Download Portable Chrome for macOS
-        if: runner.os == 'macos-latest'
+        if: runner.os == 'macOS'
         run: |
           mkdir -p chrome
           arch=$(uname -m)
