@@ -69,12 +69,32 @@ jobs:
       - name: Install ChromeDriver on macOS
         if: matrix.os == 'macos-latest'
         run: |
+          # Ermitteln der Architektur (Intel oder Apple Silicon)
+          ARCH=$(uname -m)
+          
+          # Chrome-Version abrufen
           CHROME_VERSION=$("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version | awk '{print $3}' | cut -d '.' -f 1) || { echo "Failed to get Chrome version"; exit 1; }
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_mac64.zip"
-          unzip chromedriver_mac64.zip
-          sudo mv chromedriver /usr/local/bin/
-          rm chromedriver_mac64.zip
+
+          # Falls Apple Silicon (ARM64), dann spezielle Version installieren
+          if [[ "$ARCH" == "arm64" ]]; then
+            echo "Apple Silicon erkannt, lade ARM64 ChromeDriver herunter..."
+            wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/mac-arm64/chromedriver-mac-arm64.zip"
+            unzip chromedriver-mac-arm64.zip
+            sudo mv chromedriver-mac-arm64/chromedriver /usr/local/bin/
+            rm -rf chromedriver-mac-arm64 chromedriver-mac-arm64.zip
+          else
+            echo "Intel Mac erkannt, lade Standard ChromeDriver herunter..."
+            wget -q "https://storage.googleapis.com/chrome-for-testing-public/$CHROME_VERSION/mac-x64/chromedriver-mac-x64.zip"
+            unzip chromedriver-mac-x64.zip
+            sudo mv chromedriver-mac-x64/chromedriver /usr/local/bin/
+            rm -rf chromedriver-mac-x64 chromedriver-mac-x64.zip
+          fi
+
+          # Berechtigungen setzen
+          sudo chmod +x /usr/local/bin/chromedriver
+
+          # Sicherheitswarnung umgehen (nur falls nötig)
+          xattr -d com.apple.quarantine /usr/local/bin/chromedriver || true
 
       - name: Install ChromeDriver on Windows
         if: matrix.os == 'windows-latest'
