@@ -29,13 +29,16 @@ jobs:
         shell: bash
 
       # --- ChromeDriver herunterladen (Version 134.0.6998.165) ---
+      # --- ChromeDriver automatisch herunterladen (Version 134.0.6998.165) ---
       - name: Download ChromeDriver for Linux
         if: runner.os == 'Linux'
         run: |
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip -O chromedriver.zip
           unzip -o chromedriver.zip -d drivers
+          mv drivers/chromedriver-linux64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
+          rm -rf drivers/chromedriver-linux64
           rm chromedriver.zip
         shell: bash
 
@@ -45,7 +48,9 @@ jobs:
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
           unzip -o chromedriver.zip -d drivers
+          mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
+          rm -rf drivers/chromedriver-mac-x64
           rm chromedriver.zip
         shell: bash
 
@@ -55,6 +60,8 @@ jobs:
           mkdir drivers
           Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
           Expand-Archive -Path "chromedriver.zip" -DestinationPath "drivers"
+          Move-Item -Path "drivers/chromedriver-win64/chromedriver.exe" -Destination "drivers/chromedriver.exe"
+          Remove-Item -Recurse -Force "drivers/chromedriver-win64"
           Remove-Item "chromedriver.zip"
         shell: powershell
 
