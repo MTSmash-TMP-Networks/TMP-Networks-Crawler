@@ -140,7 +140,7 @@ jobs:
             --add-data "templates:templates" \
             --add-data "web_index.db:." \
             --add-data "drivers:drivers" \
-            --add-data "chrome:chrome" \
+            --add-binary "chrome:chrome" \
             --codesign-identity "-" \
             main.py
         shell: bash
@@ -156,9 +156,26 @@ jobs:
             main.py
         shell: cmd
 
+      # Kopieren der Chrome-App nach dem Build (nur für macOS)
+      - name: Copy Chrome App to Dist on Unix
+        if: matrix.os == 'macos-latest'
+        run: |
+          cp -R chrome/Chrome.app dist/chrome/
+        shell: bash
+
       # Artefakte hochladen
-      - name: Upload Executable Artifact
+      - name: Upload Executable Artifact on Unix
+        if: matrix.os != 'windows-latest'
         uses: actions/upload-artifact@v4
         with:
           name: executable-${{ matrix.os }}
-          path: dist/main*
+          path: |
+            dist/main
+            dist/chrome
+
+      - name: Upload Executable Artifact on Windows
+        if: matrix.os == 'windows-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: executable-${{ matrix.os }}
+          path: dist\main.exe, dist\chrome
