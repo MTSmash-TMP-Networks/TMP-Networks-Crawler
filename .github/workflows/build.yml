@@ -66,17 +66,18 @@ jobs:
       - name: Download Portable Chrome (Linux)
         if: runner.os == 'Linux'
         run: |
-          mkdir -p chrome
+          mkdir chrome
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chrome-linux64.zip -O chrome.zip
           unzip chrome.zip -d chrome
-          mv chrome/chrome-linux64 chrome
-          rm chrome.zip
+          mv chrome/chrome-linux64/* chrome/
+          rm -rf chrome/chrome-linux64 chrome.zip
+          chmod +x chrome/chrome
         shell: bash
 
       - name: Download Portable Chrome (macOS)
         if: runner.os == 'macOS'
         run: |
-          mkdir -p chrome
+          mkdir chrome
           arch=$(uname -m)
           if [ "$arch" = "arm64" ]; then
             wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
@@ -101,7 +102,7 @@ jobs:
           Remove-Item chrome.zip
         shell: powershell
 
-      # --- App starten um Templates und DB zu erzeugen ---
+      # --- Templates und DB generieren ---
       - name: Generate Templates and Database
         run: |
           python main.py &
@@ -122,7 +123,7 @@ jobs:
       - name: Build Executable (Linux)
         if: runner.os == 'Linux'
         run: |
-          chmod +x chrome/chrome-linux64/chrome drivers/chromedriver
+          chmod +x chrome/chrome drivers/chromedriver
           pyinstaller --onefile \
             --add-data "templates:templates" \
             --add-data "web_index.db:." \
@@ -155,7 +156,7 @@ jobs:
             main.py
         shell: cmd
 
-      # --- Artifact Upload ---
+      # --- Artifact hochladen ---
       - name: Upload Executable
         uses: actions/upload-artifact@v4
         with:
