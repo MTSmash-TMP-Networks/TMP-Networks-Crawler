@@ -1,4 +1,4 @@
-name: Build Executable with Dynamic Templates
+name: Build Executable with Dynamic Templates and Database
 
 on:
   push:
@@ -28,8 +28,8 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Starte die App, damit die Templates erstellt werden.
-      # Wichtig: In main.py muss der Flask-Server mit debug=False und use_reloader=False gestartet werden.
+      # Starte die App, damit die Templates (und ggf. initiale DB-Struktur) generiert werden.
+      # Wichtig: In main.py den Flask-Server mit debug=False und use_reloader=False starten.
       - name: Start Application to Generate Templates
         run: |
           python main.py &
@@ -38,22 +38,26 @@ jobs:
           kill $PID || true
         shell: bash
 
-      - name: Verify Templates Folder
-        run: ls templates
+      - name: Verify Templates and DB
+        run: |
+          ls templates
+          ls web_index.db || echo "Datenbank existiert nicht"
         shell: bash
 
       - name: Build Executable on Unix (Linux/macOS)
         if: runner.os != 'Windows'
-        run: pyinstaller --onefile --add-data "templates:templates" main.py
+        run: |
+          pyinstaller --onefile --add-data "templates:templates" --add-data "web_index.db:." main.py
         shell: bash
 
       - name: Build Executable on Windows
         if: runner.os == 'Windows'
-        run: pyinstaller --onefile --add-data "templates;templates" main.py
+        run: |
+          pyinstaller --onefile --add-data "templates;templates" --add-data "web_index.db;." main.py
         shell: cmd
 
       - name: Upload Executable Artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v4
         with:
           name: executable-${{ matrix.os }}
           path: dist/main*
