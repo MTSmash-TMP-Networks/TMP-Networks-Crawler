@@ -30,9 +30,13 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
+      # Starte main.py im Template-Generierungsmodus im Hintergrund, warte 10 Sekunden und beende den Prozess
       - name: Generate Templates dynamically
         run: |
-          python main.py --generate-templates
+          python main.py --generate-templates &
+          PID=$!
+          sleep 10
+          kill $PID || true
         shell: bash
 
       - name: Verify Templates Folder
