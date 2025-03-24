@@ -336,6 +336,8 @@ def poll_for_tasks():
         time.sleep(5)
 
 # --- Funktionen für Crawling, Rendering, Speicherung, etc. ---
+import platform
+
 def get_rendered_html(url):
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -343,19 +345,28 @@ def get_rendered_html(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
 
-    # Temporärer User-Data-Ordner erstellen (wichtig!)
+    # Temporärer User-Data-Ordner erstellen
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
 
-    # Performance-Logging direkt über Optionen aktivieren
+    # Performance-Logging aktivieren
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
 
-    # Binäre Dateien (angepasst für PyInstaller)
-    chrome_options.binary_location = resource_path("chrome/chrome")
-    driver_path = resource_path("drivers/chromedriver")
+    # Korrekte Binary je nach Betriebssystem setzen
+    system = platform.system()
+    if system == "Windows":
+        chrome_binary = resource_path("chrome/chrome-win64/chrome.exe")
+        driver_path = resource_path("drivers/chromedriver.exe")
+    elif system == "Darwin":  # macOS
+        chrome_binary = resource_path("chrome/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing")
+        driver_path = resource_path("drivers/chromedriver")
+    else:  # Linux
+        chrome_binary = resource_path("chrome/chrome-linux64/chrome")
+        driver_path = resource_path("drivers/chromedriver")
+
+    chrome_options.binary_location = chrome_binary
     service = Service(executable_path=driver_path)
 
-    # ChromeDriver starten (OHNE desired_capabilities!)
     driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
