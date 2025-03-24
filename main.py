@@ -24,6 +24,14 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
+def resource_path(relative_path):
+    """Ermittle den absoluten Pfad zu einer Ressource, auch wenn die App gebündelt ist."""
+    try:
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+	
 app = Flask(__name__, template_folder="templates")
 
 # Logging konfigurieren
