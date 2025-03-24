@@ -19,7 +19,7 @@
 
 ## 📸 Screenshots
 
-<img width="1512" alt="Bildschirmfoto 2025-03-24 um 22 30 22" src="https://github.com/user-attachments/assets/ccfc88fd-25b0-44a3-8e73-6ea117b631bc" />
+<img width="1333" alt="Bildschirmfoto 2025-03-24 um 22 32 34" src="https://github.com/user-attachments/assets/fa91e5a6-ee5d-40f0-9a51-d8aa77a2912d" />
 
 
 ---
