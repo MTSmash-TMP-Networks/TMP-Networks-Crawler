@@ -2,11 +2,9 @@ name: Build Executable with Dynamic Templates
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
@@ -30,34 +28,32 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Starte main.py im Template-Generierungsmodus im Hintergrund, warte 10 Sekunden und beende den Prozess
-      - name: Generate Templates dynamically
+      # Starte die App, damit die Templates erstellt werden.
+      # Wichtig: In main.py muss der Flask-Server mit debug=False und use_reloader=False gestartet werden.
+      - name: Start Application to Generate Templates
         run: |
-          python main.py --generate-templates &
+          python main.py &
           PID=$!
           sleep 10
           kill $PID || true
         shell: bash
 
       - name: Verify Templates Folder
-        run: |
-          ls templates
+        run: ls templates
         shell: bash
 
       - name: Build Executable on Unix (Linux/macOS)
         if: runner.os != 'Windows'
-        run: |
-          pyinstaller --onefile --add-data "templates:templates" main.py
+        run: pyinstaller --onefile --add-data "templates:templates" main.py
         shell: bash
 
       - name: Build Executable on Windows
         if: runner.os == 'Windows'
-        run: |
-          pyinstaller --onefile --add-data "templates;templates" main.py
+        run: pyinstaller --onefile --add-data "templates;templates" main.py
         shell: cmd
 
       - name: Upload Executable Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v2
         with:
           name: executable-${{ matrix.os }}
           path: dist/main*
