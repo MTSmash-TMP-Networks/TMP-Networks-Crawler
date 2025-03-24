@@ -33,7 +33,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-
 
-      # Schritt 4: Installieren von Abhängigkeiten und Nightly yt-dlp
+      # Schritt 4: Installieren von Abhängigkeiten und yt-dlp Nightly
       - name: Install dependencies and yt-dlp Nightly
         run: |
           python -m pip install --upgrade pip
@@ -59,48 +59,11 @@ jobs:
         run: |
           choco install googlechrome -y
 
-      # Schritt 6: Installieren von ChromeDriver
-      - name: Install ChromeDriver
-        run: |
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            # Linux
-            CHROME_VERSION=$(google-chrome --version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            # macOS
-            CHROME_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome'" | head -n 1)
-            CHROME_VERSION=$("$CHROME_PATH/Contents/MacOS/Google Chrome" --version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            # Windows (PowerShell)
-            CHROME_VERSION=$(googlechrome --version | Select-String -Pattern '\d+\.\d+\.\d+' | ForEach-Object { $_.Matches[0].Value })
-          fi
-
-          echo "Chrome Version: $CHROME_VERSION"
-
-          # Ermitteln der kompatiblen ChromeDriver-Version
-          CHROMEDRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION" || echo "latest")
-
-          echo "ChromeDriver Version: $CHROMEDRIVER_VERSION"
-
-          # Herunterladen und Installieren von ChromeDriver
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_linux64.zip
-            unzip chromedriver_linux64.zip
-            sudo mv chromedriver /usr/local/bin/
-            sudo chmod +x /usr/local/bin/chromedriver
-            rm chromedriver_linux64.zip
-          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            wget https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_mac64.zip
-            unzip chromedriver_mac64.zip
-            sudo mv chromedriver /usr/local/bin/
-            sudo chmod +x /usr/local/bin/chromedriver
-            rm chromedriver_mac64.zip
-          elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            # PowerShell-Befehle für Windows
-            Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
-            Expand-Archive -Path chromedriver_win32.zip -DestinationPath ./chromedriver
-            Move-Item -Path ./chromedriver/chromedriver.exe -Destination "C:\Windows\System32\chromedriver.exe"
-            Remove-Item -Recurse -Force chromedriver_win32.zip chromedriver
-          fi
+      # Schritt 6: Einrichten von ChromeDriver mit GitHub Action
+      - name: Setup ChromeDriver
+        uses: actions/setup-chromedriver@v3
+        with:
+          chrome-version: 'latest'  # Installiert die neueste ChromeDriver-Version, die mit der installierten Chrome-Version kompatibel ist
 
       # Schritt 7: Überprüfen der yt-dlp Installation
       - name: Check yt-dlp version
@@ -114,7 +77,7 @@ jobs:
           # Stellen Sie sicher, dass Sie Tests definiert haben
           # pip install pytest
           # pytest
-          
+
           # Wenn keine Tests definiert sind
           echo "Keine Tests definiert."
 
