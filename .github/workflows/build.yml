@@ -28,7 +28,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Download ChromeDriver automatisch – Version 114.0.5735.90 (anpassen, falls nötig)
+      # --- ChromeDriver automatisch herunterladen ---
       - name: Download ChromeDriver for Linux
         if: runner.os == 'Linux'
         run: |
@@ -58,7 +58,38 @@ jobs:
           Remove-Item "chromedriver.zip"
         shell: powershell
 
-      # Starte die App, damit dynamisch die Templates (und ggf. DB) generiert werden.
+      # --- Portable Chrome/Chromium automatisch herunterladen ---
+      - name: Download Portable Chromium for Linux
+        if: runner.os == 'Linux'
+        run: |
+          mkdir -p chrome
+          # Ersetze <CHROMIUM_URL_LINUX> mit einem gültigen Download-Link für einen portablen Chromium-Build unter Linux
+          wget -q <CHROMIUM_URL_LINUX> -O chrome/chrome-linux.zip
+          unzip -o chrome/chrome-linux.zip -d chrome
+          rm chrome/chrome-linux.zip
+        shell: bash
+
+      - name: Download Portable Chromium for macOS
+        if: runner.os == 'macOS'
+        run: |
+          mkdir -p chrome
+          # Ersetze <CHROMIUM_URL_MAC> mit einem gültigen Download-Link für einen portablen Chromium-Build unter macOS
+          wget -q <CHROMIUM_URL_MAC> -O chrome/chrome-mac.zip
+          unzip -o chrome/chrome-mac.zip -d chrome
+          rm chrome/chrome-mac.zip
+        shell: bash
+
+      - name: Download Portable Chromium for Windows
+        if: runner.os == 'Windows'
+        run: |
+          mkdir chrome
+          # Ersetze <CHROMIUM_URL_WIN> mit einem gültigen Download-Link für einen portablen Chromium-Build unter Windows
+          Invoke-WebRequest -Uri "<CHROMIUM_URL_WIN>" -OutFile "chrome/chrome-win.zip"
+          Expand-Archive -Path "chrome/chrome-win.zip" -DestinationPath "chrome"
+          Remove-Item "chrome/chrome-win.zip"
+        shell: powershell
+
+      # --- App starten, damit dynamisch die Templates (und ggf. die DB-Struktur) generiert werden ---
       - name: Start Application to Generate Templates
         run: |
           python main.py &
@@ -69,9 +100,13 @@ jobs:
 
       - name: Verify Resources
         run: |
+          echo "Templates:"
           ls templates
+          echo "Database:"
           ls web_index.db || echo "Database not found"
-          ls chrome || echo "Portable Chrome not found"
+          echo "Portable Chrome:"
+          ls chrome
+          echo "Drivers:"
           ls drivers
         shell: bash
 
