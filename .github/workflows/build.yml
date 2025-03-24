@@ -1,4 +1,4 @@
-name: Build Executable with Dynamic Templates, Database, Portable Chrome and Automatic ChromeDriver
+name: Build Executable with Dynamic Templates, Database, Portable Chrome and Automatic ChromeDriver (Stable Headless)
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [ ubuntu-latest, windows-latest, macos-latest ]
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
@@ -28,22 +28,22 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # --- ChromeDriver automatisch herunterladen ---
+      # --- ChromeDriver herunterladen (Version 134.0.6998.165) ---
       - name: Download ChromeDriver for Linux
         if: runner.os == 'Linux'
         run: |
           mkdir -p drivers
-          wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_linux64.zip -O chromedriver.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip -O chromedriver.zip
           unzip -o chromedriver.zip -d drivers
           chmod +x drivers/chromedriver
           rm chromedriver.zip
         shell: bash
 
       - name: Download ChromeDriver for macOS
-        if: runner.os == 'macOS'
+        if: runner.os == 'macos-latest'
         run: |
           mkdir -p drivers
-          wget -q https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_mac64.zip -O chromedriver.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
           unzip -o chromedriver.zip -d drivers
           chmod +x drivers/chromedriver
           rm chromedriver.zip
@@ -53,40 +53,40 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir drivers
-          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/114.0.5735.90/chromedriver_win32.zip" -OutFile "chromedriver.zip"
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
           Expand-Archive -Path "chromedriver.zip" -DestinationPath "drivers"
           Remove-Item "chromedriver.zip"
         shell: powershell
 
-      # --- Portable Chromium automatisch herunterladen ---
-      - name: Download Portable Chromium for Linux
+      # --- Portable Chrome herunterladen (Stable Headless) ---
+      - name: Download Portable Chrome for Linux
         if: runner.os == 'Linux'
         run: |
           mkdir -p chrome
-          wget -q https://commondatastorage.googleapis.com/chromium-browser-snapshots/Linux_x64/1272056/chrome-linux.zip -O chrome/chrome-linux.zip
-          unzip -o chrome/chrome-linux.zip -d chrome
-          rm chrome/chrome-linux.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chrome-linux64.zip -O chrome/chrome-linux64.zip
+          unzip -o chrome/chrome-linux64.zip -d chrome
+          rm chrome/chrome-linux64.zip
         shell: bash
 
-      - name: Download Portable Chromium for macOS
-        if: runner.os == 'macOS'
+      - name: Download Portable Chrome for macOS
+        if: runner.os == 'macos-latest'
         run: |
           mkdir -p chrome
-          wget -q https://commondatastorage.googleapis.com/chromium-browser-snapshots/Mac/1272056/chrome-mac.zip -O chrome/chrome-mac.zip
-          unzip -o chrome/chrome-mac.zip -d chrome
-          rm chrome/chrome-mac.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome/chrome-mac-x64.zip
+          unzip -o chrome/chrome-mac-x64.zip -d chrome
+          rm chrome/chrome-mac-x64.zip
         shell: bash
 
-      - name: Download Portable Chromium for Windows
+      - name: Download Portable Chrome for Windows
         if: runner.os == 'Windows'
         run: |
           mkdir chrome
-          Invoke-WebRequest -Uri "https://commondatastorage.googleapis.com/chromium-browser-snapshots/Win/1272056/chrome-win.zip" -OutFile "chrome/chrome-win.zip"
-          Expand-Archive -Path "chrome/chrome-win.zip" -DestinationPath "chrome"
-          Remove-Item "chrome/chrome-win.zip"
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome/chrome-win64.zip"
+          Expand-Archive -Path "chrome/chrome-win64.zip" -DestinationPath "chrome"
+          Remove-Item "chrome/chrome-win64.zip"
         shell: powershell
 
-      # --- App starten, damit dynamisch die Templates (und ggf. die DB-Struktur) generiert werden ---
+      # --- App starten, damit dynamisch Templates (und ggf. DB-Struktur) generiert werden ---
       - name: Start Application to Generate Templates
         run: |
           python main.py &
