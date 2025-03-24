@@ -25,7 +25,6 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 
 app = Flask(__name__, template_folder="templates")
-chrome_options.binary_location = resource_path("chrome/chrome")
 
 # Logging konfigurieren
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
