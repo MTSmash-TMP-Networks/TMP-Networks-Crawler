@@ -94,7 +94,7 @@ jobs:
 
       # Schritt 9: Artefakte speichern (ausführbare Dateien hochladen)
       - name: Upload Executables
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4  # Version auf v4 aktualisiert
         with:
           name: Executables-${{ matrix.os }}
           path: dist/*
