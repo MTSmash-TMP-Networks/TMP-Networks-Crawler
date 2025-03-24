@@ -340,6 +340,9 @@ def get_rendered_html(url):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")  # WICHTIG für Stabilität
+    chrome_options.add_argument("--disable-extensions")     # Empfohlen
+    chrome_options.add_argument("--disable-infobars")       # Empfohlen
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36")
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
@@ -348,7 +351,7 @@ def get_rendered_html(url):
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
 
-    # Binäre Dateien (angepasst für PyInstaller)
+    # Pfade (angepasst für PyInstaller)
     chrome_options.binary_location = resource_path("chrome/chrome")
     driver_path = resource_path("drivers/chromedriver")
     service = Service(executable_path=driver_path)
@@ -362,7 +365,7 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
-        # Temp-Ordner löschen (wichtig!)
+        # Temp-Ordner löschen
         shutil.rmtree(user_data_dir, ignore_errors=True)
 
     return html, logs
