@@ -121,7 +121,11 @@ jobs:
       - name: Build Executable on Unix (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
-          pyinstaller --onefile --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" main.py
+          if [ "$(uname)" = "Darwin" ]; then
+            pyinstaller --onefile --codesign-identity="" --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" main.py
+          else
+            pyinstaller --onefile --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" main.py
+          fi
         shell: bash
 
       - name: Build Executable on Windows
