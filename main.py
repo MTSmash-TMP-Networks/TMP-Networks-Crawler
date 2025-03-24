@@ -342,23 +342,26 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')
-    chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+    
+    # Temporärer User-Data-Ordner für Chrome
+    user_data_dir = tempfile.mkdtemp()
+    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
 
     system = platform.system()
     if system == "Windows":
-        chrome_binary = resource_path("chrome/chrome-win64/chrome.exe")
+        chrome_binary = resource_path("chrome/chrome/chrome.exe")
         driver_path = resource_path("drivers/chromedriver.exe")
     elif system == "Darwin":
-        chrome_binary = resource_path("chrome/chrome")
+        chrome_binary = resource_path("chrome/Chrome.app/Contents/MacOS/Google Chrome for Testing")
         driver_path = resource_path("drivers/chromedriver")
     else:  # Linux
-        chrome_binary = resource_path("chrome/chrome")
+        chrome_binary = resource_path("chrome/chrome/chrome")
         driver_path = resource_path("drivers/chromedriver")
 
     chrome_options.binary_location = chrome_binary
     service = Service(driver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
+
     try:
         driver.get(url)
         time.sleep(3)
@@ -366,8 +369,9 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
-    return html, logs
+        shutil.rmtree(user_data_dir, ignore_errors=True)
 
+    return html, logs
 	
 def extract_video_url_from_logs(logs):
     for entry in logs:
