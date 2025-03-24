@@ -86,7 +86,17 @@ jobs:
             Remove-Item -Recurse -Force chromedriver_win32.zip chromedriver
           fi
 
-      # Schritt 6: (Optional) Ausführen von Tests
+      # Schritt 6: Installieren der Nightly-Version von yt-dlp
+      - name: Install yt-dlp Nightly
+        run: |
+          python -m pip install -U --pre "yt-dlp[default]"
+
+      # Schritt 7: Überprüfen der yt-dlp Installation
+      - name: Check yt-dlp version
+        run: |
+          yt-dlp --version
+
+      # Schritt 8: (Optional) Ausführen von Tests
       - name: Run Tests
         run: |
           # Führen Sie hier Ihre Test-Skripte aus
@@ -95,7 +105,7 @@ jobs:
           # pytest
           echo "Keine Tests definiert."
 
-      # Schritt 7: (Optional) Starten der Anwendung
+      # Schritt 9: (Optional) Starten der Anwendung
       - name: Run Application
         run: |
           # Starten Sie Ihre Anwendung, um sicherzustellen, dass sie ohne Fehler initialisiert wird.
