@@ -336,24 +336,6 @@ def poll_for_tasks():
         time.sleep(5)
 
 # --- Funktionen für Crawling, Rendering, Speicherung, etc. ---
-import platform
-import tempfile
-import shutil
-import time
-import sys
-import os
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
-from selenium.webdriver.chrome.service import Service
-
-def resource_path(relative_path):
-    """Ermittelt den absoluten Pfad zu einer Ressource, egal ob die Anwendung gebündelt ist oder nicht."""
-    try:
-        base_path = sys._MEIPASS
-    except AttributeError:
-        base_path = os.path.abspath(".")
-    return os.path.join(base_path, relative_path)
-
 def get_rendered_html(url):
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -366,32 +348,49 @@ def get_rendered_html(url):
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
     
     system = platform.system()
+    logger.info(f"Erkanntes Betriebssystem: {system}")
+    
     if system == "Windows":
-        chrome_binary = resource_path("chrome/chrome/chrome.exe")
-        driver_path = resource_path("drivers/chromedriver.exe")
+        chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome.exe"))
+        driver_path = resource_path(os.path.join("drivers", "chromedriver.exe"))
     elif system == "Darwin":
-        chrome_binary = resource_path("chrome/Chrome.app/Contents/MacOS/Google Chrome for Testing")
-        driver_path = resource_path("drivers/chromedriver")
+        chrome_binary = resource_path(os.path.join("chrome", "Chrome.app", "Contents", "MacOS", "Google Chrome for Testing"))
+        driver_path = resource_path(os.path.join("drivers", "chromedriver"))
     else:  # Linux
-        chrome_binary = resource_path("chrome/chrome/chrome")
-        driver_path = resource_path("drivers/chromedriver")
+        chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome"))
+        driver_path = resource_path(os.path.join("drivers", "chromedriver"))
+    
+    logger.info(f"Chrome Binary Pfad: {chrome_binary}")
+    logger.info(f"ChromeDriver Pfad: {driver_path}")
     
     chrome_options.binary_location = chrome_binary
+    
+    # Sicherstellen, dass die Chrome-Binary ausführbar ist (nur für Unix-basierte Systeme)
+    if system in ["Darwin", "Linux"]:
+        if not os.access(chrome_binary, os.X_OK):
+            logger.info(f"Setze Ausführungsrechte für {chrome_binary}")
+            os.chmod(chrome_binary, 0o755)
+    
     service = Service(driver_path)
     
     try:
+        logger.info("Initialisiere WebDriver...")
         driver = webdriver.Chrome(service=service, options=chrome_options)
+        logger.info(f"Navigiere zu URL: {url}")
         driver.get(url)
         time.sleep(3)  # Warten, bis die Seite vollständig geladen ist
         html = driver.page_source
         try:
             logs = driver.get_log("performance")
-        except Exception:
+            logger.info("Performance Logs abgerufen.")
+        except Exception as log_error:
+            logger.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
             logs = []
     except Exception as e:
-        print(f"Fehler beim Rendern der URL {url}: {e}")
+        logger.error(f"Fehler beim Rendern der URL {url}: {e}", exc_info=True)
         raise
     finally:
+        logger.info("Beende WebDriver und bereinige temporäre Dateien.")
         driver.quit()
         shutil.rmtree(user_data_dir, ignore_errors=True)
     
