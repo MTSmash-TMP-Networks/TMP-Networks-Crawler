@@ -23,13 +23,13 @@ jobs:
         with:
           python-version: '3.11'
 
-      # Schritt 3: Installieren von Abhängigkeiten und yt-dlp Nightly
-      - name: Install dependencies and yt-dlp Nightly
+      # Schritt 3: Installieren von Abhängigkeiten
+      - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
           pip install -U --pre "yt-dlp[default]"
-          pip install pyinstaller  # PyInstaller für die Erstellung von ausführbaren Dateien
+          pip install pyinstaller flask selenium beautifulsoup4 requests
 
       # Schritt 4: **Google Chrome installieren und überprüfen**
       - name: Install Google Chrome on Ubuntu
@@ -56,7 +56,16 @@ jobs:
             Write-Error "Google Chrome installation failed"; exit 1 
           }
 
-      # Schritt 5: **Erstellen einer ausführbaren Datei mit PyInstaller**
+      # Schritt 5: **Sicherstellen, dass alle Templates und statischen Dateien vorhanden sind**
+      - name: Ensure templates and static folders exist
+        run: |
+          mkdir -p templates static
+          touch templates/index.html templates/manual_index.html templates/crawler_status.html
+          touch templates/auto_mode.html templates/search_results.html templates/search_images.html
+          touch templates/search_videos.html templates/offline.html templates/offline_text.html
+          touch templates/task_status.html templates/search_results_task.html
+
+      # Schritt 6: **Erstellen einer ausführbaren Datei mit PyInstaller**
       - name: Build Executable on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -71,10 +80,6 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: |
           pyinstaller --onefile --name main.exe main.py
-
-      # Schritt 6: (Optional) Ausführen von Tests
-      - name: Run Tests
-        run: echo "Keine Tests definiert."
 
       # Schritt 7: Anwendung starten und überprüfen (Unix)
       - name: Run Application on Unix
@@ -94,7 +99,7 @@ jobs:
 
       # Schritt 9: Artefakte speichern (ausführbare Dateien hochladen)
       - name: Upload Executables
-        uses: actions/upload-artifact@v4  # Version auf v4 aktualisiert
+        uses: actions/upload-artifact@v4
         with:
           name: Executables-${{ matrix.os }}
           path: dist/*
