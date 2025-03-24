@@ -1,4 +1,4 @@
-name: Build Executable with Dynamic Templates, Database, Portable Chrome and Automatic ChromeDriver (Stable Headless)
+name: Build Executable with Dynamic Templates, Database, Portable Chrome and Automatic ChromeDriver
 
 on:
   push:
@@ -28,7 +28,7 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # --- ChromeDriver herunterladen (Version 134.0.6998.165) ---
+      # --- ChromeDriver herunterladen ---
       - name: Download ChromeDriver for Linux
         if: runner.os == 'Linux'
         run: |
@@ -64,7 +64,7 @@ jobs:
           Remove-Item "chromedriver.zip"
         shell: powershell
 
-      # --- Portable Chrome herunterladen (Stable Headless) ---
+      # --- Portable Chrome herunterladen ---
       - name: Download Portable Chrome for Linux
         if: runner.os == 'Linux'
         run: |
@@ -87,10 +87,10 @@ jobs:
           unzip -o chrome/chrome-mac.zip -d chrome
           rm chrome/chrome-mac.zip
           if [ -d "chrome/chrome-mac-arm64" ]; then
-            mv "chrome/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
+            mv "chrome/chrome-mac-arm64/Google Chrome for Testing.app" chrome/Chrome.app
             rm -rf "chrome/chrome-mac-arm64"
           elif [ -d "chrome/chrome-mac-x64" ]; then
-            mv "chrome/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
+            mv "chrome/chrome-mac-x64/Google Chrome for Testing.app" chrome/Chrome.app
             rm -rf "chrome/chrome-mac-x64"
           else
             echo "No recognized Chrome folder found"
@@ -107,7 +107,7 @@ jobs:
           Remove-Item "chrome/chrome-win64.zip"
         shell: powershell
 
-      # --- App starten, damit dynamisch Templates (und ggf. DB-Struktur) generiert werden ---
+      # --- App starten für Templates & DB ---
       - name: Start Application to Generate Templates
         run: |
           python main.py &
@@ -116,23 +116,21 @@ jobs:
           kill $PID || true
         shell: bash
 
+      # --- Verify Resources ---
       - name: Verify Resources
         run: |
-          echo "Templates:"
-          ls templates
-          echo "Database:"
-          ls web_index.db || echo "Database not found"
-          echo "Portable Chrome:"
-          ls chrome
-          echo "Drivers:"
-          ls drivers
+          echo "Templates:" && ls templates
+          echo "Database:" && ls web_index.db || echo "Database not found"
+          echo "Portable Chrome:" && ls chrome
+          echo "Drivers:" && ls drivers
         shell: bash
 
+      # --- Build Executable ---
       - name: Build Executable on Unix (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           if [ "$(uname)" = "Darwin" ]; then
-            pyinstaller --onefile --codesign-identity="" --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" main.py
+            pyinstaller --onefile --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" --codesign-identity="" main.py
           else
             pyinstaller --onefile --add-data "templates:templates" --add-data "web_index.db:." --add-data "drivers:drivers" --add-data "chrome:chrome" main.py
           fi
