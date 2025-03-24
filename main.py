@@ -353,7 +353,7 @@ def get_rendered_html(url):
         chrome_binary = resource_path("chrome/chrome")
         driver_path = resource_path("drivers/chromedriver")
     else:  # Linux
-        chrome_binary = resource_path("chrome/chrome-linux64/chrome")
+        chrome_binary = resource_path("chrome/chrome")
         driver_path = resource_path("drivers/chromedriver")
 
     chrome_options.binary_location = chrome_binary
