@@ -5,6 +5,7 @@ import requests
 import logging
 import tempfile
 import uuid
+import sys
 import sqlite3
 import time
 import shutil
