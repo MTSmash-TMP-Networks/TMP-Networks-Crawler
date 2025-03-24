@@ -24,14 +24,24 @@ jobs:
         with:
           python-version: '3.10'  # Passen Sie die Python-Version nach Bedarf an
 
-      # Schritt 3: Installieren von Abhängigkeiten
-      - name: Install dependencies
+      # Schritt 3: Caching von Pip-Abhängigkeiten zur Beschleunigung der Builds
+      - name: Cache pip
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+
+      # Schritt 4: Installieren von Abhängigkeiten und Nightly yt-dlp
+      - name: Install dependencies and yt-dlp Nightly
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+          pip install -U --pre "yt-dlp[default]"
 
-      # Schritt 4: Installieren von Google Chrome
-      - name: Install Google Chrome
+      # Schritt 5: Installieren von Google Chrome
+      - name: Install Google Chrome on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
           wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
@@ -39,24 +49,29 @@ jobs:
           sudo apt install -y ./google-chrome-stable_current_amd64.deb
           rm google-chrome-stable_current_amd64.deb
 
-      - name: Install Google Chrome (macOS)
+      - name: Install Google Chrome on macOS
         if: matrix.os == 'macos-latest'
         run: |
           brew install --cask google-chrome
 
-      - name: Install Google Chrome (Windows)
+      - name: Install Google Chrome on Windows
         if: matrix.os == 'windows-latest'
         run: |
           choco install googlechrome -y
 
-      # Schritt 5: Installieren von ChromeDriver
+      # Schritt 6: Installieren von ChromeDriver
       - name: Install ChromeDriver
         run: |
-          # Ermitteln der Chrome-Version
-          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]] || [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            CHROME_VERSION=$(google-chrome --version | grep -oP '\d+\.\d+\.\d+')
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            # Linux
+            CHROME_VERSION=$(google-chrome --version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            # macOS
+            CHROME_PATH=$(mdfind "kMDItemCFBundleIdentifier == 'com.google.Chrome'" | head -n 1)
+            CHROME_VERSION=$("$CHROME_PATH/Contents/MacOS/Google Chrome" --version | grep -Eo "[0-9]+\.[0-9]+\.[0-9]+")
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            CHROME_VERSION=$(googlechrome --version | grep -oP '\d+\.\d+\.\d+')
+            # Windows (PowerShell)
+            CHROME_VERSION=$(googlechrome --version | Select-String -Pattern '\d+\.\d+\.\d+' | ForEach-Object { $_.Matches[0].Value })
           fi
 
           echo "Chrome Version: $CHROME_VERSION"
@@ -80,16 +95,12 @@ jobs:
             sudo chmod +x /usr/local/bin/chromedriver
             rm chromedriver_mac64.zip
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
+            # PowerShell-Befehle für Windows
             Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/${CHROMEDRIVER_VERSION}/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
             Expand-Archive -Path chromedriver_win32.zip -DestinationPath ./chromedriver
             Move-Item -Path ./chromedriver/chromedriver.exe -Destination "C:\Windows\System32\chromedriver.exe"
             Remove-Item -Recurse -Force chromedriver_win32.zip chromedriver
           fi
-
-      # Schritt 6: Installieren der Nightly-Version von yt-dlp
-      - name: Install yt-dlp Nightly
-        run: |
-          python -m pip install -U --pre "yt-dlp[default]"
 
       # Schritt 7: Überprüfen der yt-dlp Installation
       - name: Check yt-dlp version
@@ -99,20 +110,20 @@ jobs:
       # Schritt 8: (Optional) Ausführen von Tests
       - name: Run Tests
         run: |
-          # Führen Sie hier Ihre Test-Skripte aus
-          # Beispiel: pytest
+          # Beispiel für die Ausführung von Tests mit pytest
+          # Stellen Sie sicher, dass Sie Tests definiert haben
           # pip install pytest
           # pytest
+          
+          # Wenn keine Tests definiert sind
           echo "Keine Tests definiert."
 
-      # Schritt 9: (Optional) Starten der Anwendung
+      # Schritt 9: (Optional) Starten der Anwendung und Überprüfung
       - name: Run Application
         run: |
-          # Starten Sie Ihre Anwendung, um sicherzustellen, dass sie ohne Fehler initialisiert wird.
-          # Dies kann durch das Ausführen von main.py erfolgen.
-          # Bitte passen Sie den Befehl entsprechend an, falls zusätzliche Parameter erforderlich sind.
+          # Starten Sie Ihre Anwendung im Hintergrund
           python main.py &
           # Warten Sie einige Sekunden, damit die Anwendung starten kann
           sleep 5
-          # Überprüfen Sie, ob der Flask-Server läuft (optional)
-          curl -I http://localhost:7001
+          # Überprüfen Sie, ob der Flask-Server läuft (ersetzen Sie den Port bei Bedarf)
+          curl -I http://localhost:7001 || exit 1
