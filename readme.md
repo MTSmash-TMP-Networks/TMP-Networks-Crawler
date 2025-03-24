@@ -56,7 +56,7 @@ project/
 ├── templates/
 │   └── *.html (werden beim ersten Start automatisch erzeugt)
 ├── web_index.db (wird automatisch erstellt)
-└── app.py
+└── main.py
 ```
 
 ---
@@ -66,7 +66,7 @@ project/
 ### Starten der App
 
 ```bash
-python app.py
+python main.py
 ```
 
 Die Weboberfläche ist dann erreichbar unter:  
