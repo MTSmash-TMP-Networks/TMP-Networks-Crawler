@@ -30,29 +30,22 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Schritt hinzugefügt: Templates dynamisch generieren (main.py einmal starten und nach kurzer Zeit stoppen)
       - name: Generate Templates dynamically
         run: |
-          python main.py &
-          PID=$!
-          sleep 10  # Warte einige Sekunden, bis Templates erstellt wurden
-          kill $PID || true
+          python main.py --generate-templates
         shell: bash
 
-      # Prüfen, ob Templates existieren (Debugging-Zwecke)
       - name: Verify Templates Folder
         run: |
           ls templates
         shell: bash
 
-      # Build für Unix (Linux/macOS)
-      - name: Build Executable on Unix
+      - name: Build Executable on Unix (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
           pyinstaller --onefile --add-data "templates:templates" main.py
         shell: bash
 
-      # Build für Windows
       - name: Build Executable on Windows
         if: runner.os == 'Windows'
         run: |
