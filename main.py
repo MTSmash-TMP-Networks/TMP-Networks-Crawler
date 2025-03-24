@@ -339,16 +339,23 @@ def get_rendered_html(url):
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--incognito")
+    chrome_options.add_argument("--disable-dev-shm-usage")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
                                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36")
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    
-    # Verwende den eingebundenen portablen Browser
+
+    # Erstelle einen temporären Ordner für das Chrome-Profil
+    temp_profile = tempfile.mkdtemp()
+
+    # Setze dieses Profil als user-data-dir
+    chrome_options.add_argument(f"--user-data-dir={temp_profile}")
+
+    # Verwende den eingebundenen portablen Chrome-Browser
     chrome_options.binary_location = resource_path("chrome/chrome")
-    
+
     driver_path = resource_path("drivers/chromedriver")
     service = Service(executable_path=driver_path)
+
     driver = webdriver.Chrome(service=service, options=chrome_options)
     try:
         driver.get(url)
@@ -357,6 +364,9 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
+        # Lösche das temporäre Chrome-Profil wieder
+        shutil.rmtree(temp_profile, ignore_errors=True)
+
     return html, logs
 	
 def extract_video_url_from_logs(logs):
