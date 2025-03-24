@@ -56,14 +56,17 @@ jobs:
             Write-Error "Google Chrome installation failed"; exit 1 
           }
 
-      # Schritt 5: **Sicherstellen, dass alle Templates und statischen Dateien vorhanden sind**
+      # Schritt 5: **Sicherstellen, dass die Templates und statischen Dateien existieren**
       - name: Ensure templates and static folders exist
         run: |
-          mkdir -p templates static
-          touch templates/index.html templates/manual_index.html templates/crawler_status.html
-          touch templates/auto_mode.html templates/search_results.html templates/search_images.html
-          touch templates/search_videos.html templates/offline.html templates/offline_text.html
-          touch templates/task_status.html templates/search_results_task.html
+          if [ "$RUNNER_OS" == "Windows" ]; then
+            New-Item -ItemType Directory -Path templates, static -Force
+            New-Item -ItemType File -Path templates/index.html -Force
+          else
+            mkdir -p templates static
+            touch templates/index.html
+          fi
+        shell: bash
 
       # Schritt 6: **Erstellen einer ausführbaren Datei mit PyInstaller**
       - name: Build Executable on Ubuntu
