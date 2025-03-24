@@ -344,6 +344,7 @@ def get_rendered_html(url):
                                 "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36")
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
     
+    # Verwende den eingebundenen portablen Browser
     chrome_options.binary_location = resource_path("chrome/chrome")
     
     driver_path = resource_path("drivers/chromedriver")
