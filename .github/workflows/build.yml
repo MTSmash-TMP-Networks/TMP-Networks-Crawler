@@ -55,11 +55,11 @@ jobs:
             Write-Error "Google Chrome installation failed"; exit 1 
           }
 
-      # Schritt 7: (Optional) Ausführen von Tests
+      # Schritt 5: (Optional) Ausführen von Tests
       - name: Run Tests
         run: echo "Keine Tests definiert."
 
-      # Schritt 8: Anwendung starten und überprüfen (Unix)
+      # Schritt 6: Anwendung starten und überprüfen (Unix)
       - name: Run Application on Unix
         if: matrix.os != 'windows-latest'
         run: |
@@ -67,10 +67,10 @@ jobs:
           sleep 5
           curl -I http://localhost:7001 || exit 1
 
-      # Schritt 8: Anwendung starten und überprüfen (Windows)
+      # Schritt 7: Anwendung starten und überprüfen (Windows)
       - name: Run Application on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          start /B python main.py
-          timeout /T 5
+          Start-Process -NoNewWindow -FilePath "python" -ArgumentList "main.py"
+          Start-Sleep -Seconds 5
           curl -I http://localhost:7001 || exit 1
