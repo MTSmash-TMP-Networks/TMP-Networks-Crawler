@@ -345,12 +345,11 @@ def get_rendered_html(url):
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
     
-    # Temporärer User-Data-Ordner für Chrome
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
     
     system = platform.system()
-    logger.info(f"Erkanntes Betriebssystem: {system}")
+    logging.info(f"Erkanntes Betriebssystem: {system}")
     
     if system == "Windows":
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome.exe"))
@@ -362,37 +361,36 @@ def get_rendered_html(url):
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome"))
         driver_path = resource_path(os.path.join("drivers", "chromedriver"))
     
-    logger.info(f"Chrome Binary Pfad: {chrome_binary}")
-    logger.info(f"ChromeDriver Pfad: {driver_path}")
+    logging.info(f"Chrome Binary Pfad: {chrome_binary}")
+    logging.info(f"ChromeDriver Pfad: {driver_path}")
     
     chrome_options.binary_location = chrome_binary
     
-    # Sicherstellen, dass die Chrome-Binary ausführbar ist (nur für Unix-basierte Systeme)
     if system in ["Darwin", "Linux"]:
         if not os.access(chrome_binary, os.X_OK):
-            logger.info(f"Setze Ausführungsrechte für {chrome_binary}")
+            logging.info(f"Setze Ausführungsrechte für {chrome_binary}")
             os.chmod(chrome_binary, 0o755)
     
     service = Service(driver_path)
     
     try:
-        logger.info("Initialisiere WebDriver...")
+        logging.info("Initialisiere WebDriver...")
         driver = webdriver.Chrome(service=service, options=chrome_options)
-        logger.info(f"Navigiere zu URL: {url}")
+        logging.info(f"Navigiere zu URL: {url}")
         driver.get(url)
-        time.sleep(3)  # Warten, bis die Seite vollständig geladen ist
+        time.sleep(3)
         html = driver.page_source
         try:
             logs = driver.get_log("performance")
-            logger.info("Performance Logs abgerufen.")
+            logging.info("Performance Logs abgerufen.")
         except Exception as log_error:
-            logger.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
+            logging.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
             logs = []
     except Exception as e:
-        logger.error(f"Fehler beim Rendern der URL {url}: {e}", exc_info=True)
+        logging.error(f"Fehler beim Rendern der URL {url}: {e}", exc_info=True)
         raise
     finally:
-        logger.info("Beende WebDriver und bereinige temporäre Dateien.")
+        logging.info("Beende WebDriver und bereinige temporäre Dateien.")
         driver.quit()
         shutil.rmtree(user_data_dir, ignore_errors=True)
     
