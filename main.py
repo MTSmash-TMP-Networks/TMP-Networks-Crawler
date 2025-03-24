@@ -4,6 +4,7 @@ warnings.filterwarnings("ignore", message="resource_tracker: There appear to be"
 import requests
 import logging
 import tempfile
+import uuid
 import sqlite3
 import time
 import shutil
@@ -334,19 +335,22 @@ def poll_for_tasks():
 
 # --- Funktionen für Crawling, Rendering, Speicherung, etc. ---
 def get_rendered_html(url):
-    # Erzeuge einen eindeutigen temporären Ordner für das Browserprofil
-    temp_profile = tempfile.mkdtemp(prefix="chrome_profile_")
+    # Erzeuge einen wirklich einzigartigen Profilpfad:
+    unique_profile_dir = tempfile.gettempdir() + "/chrome_profile_" + str(uuid.uuid4())
+    # Erstelle den Ordner, falls noch nicht vorhanden:
+    import os
+    os.makedirs(unique_profile_dir, exist_ok=True)
     
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36")
+    chrome_options.add_argument("--disable-extensions")
+    chrome_options.add_argument("--no-first-run")
+    chrome_options.add_argument("--no-default-browser-check")
+    # Übergebe den eindeutigen Profilpfad:
+    chrome_options.add_argument(f"--user-data-dir={unique_profile_dir}")
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
-    
-    # Übergebe den eindeutigen User Data Directory
-    chrome_options.add_argument(f"--user-data-dir={temp_profile}")
     
     # Verwende den eingebundenen portablen Browser
     chrome_options.binary_location = resource_path("chrome/chrome")
@@ -362,10 +366,9 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
-        # Entferne das temporäre Profil, damit es nicht wiederverwendet wird
-        shutil.rmtree(temp_profile)
+        shutil.rmtree(unique_profile_dir, ignore_errors=True)
     return html, logs
-
+	
 def extract_video_url_from_logs(logs):
     for entry in logs:
         try:
