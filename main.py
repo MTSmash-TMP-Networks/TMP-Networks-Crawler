@@ -41,6 +41,7 @@ def resource_path(relative_path):
 app = Flask(__name__, template_folder="templates")
 
 # Logging konfigurieren
+logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 
 # Flask-App initialisieren
