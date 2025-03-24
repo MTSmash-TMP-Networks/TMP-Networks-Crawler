@@ -342,17 +342,21 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')  # eindeutiges Temp-Verzeichnis
-    
-    # Wichtig: Logging explizit aktivieren
-    caps = webdriver.DesiredCapabilities.CHROME.copy()
-    caps["goog:loggingPrefs"] = {"performance": "ALL"}
-    
+
+    # Temporärer User-Data-Ordner erstellen (wichtig!)
+    user_data_dir = tempfile.mkdtemp()
+    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
+
+    # Performance-Logging direkt über Optionen aktivieren
+    chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
+    # Binäre Dateien (angepasst für PyInstaller)
     chrome_options.binary_location = resource_path("chrome/chrome")
     driver_path = resource_path("drivers/chromedriver")
     service = Service(executable_path=driver_path)
 
-    driver = webdriver.Chrome(service=service, options=chrome_options, desired_capabilities=caps)
+    # ChromeDriver starten (OHNE desired_capabilities!)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
         driver.get(url)
@@ -361,6 +365,7 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
+        shutil.rmtree(user_data_dir, ignore_errors=True)
 
     return html, logs
 	
