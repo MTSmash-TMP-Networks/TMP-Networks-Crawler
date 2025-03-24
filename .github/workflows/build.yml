@@ -86,9 +86,16 @@ jobs:
           fi
           unzip -o chrome/chrome-mac.zip -d chrome
           rm chrome/chrome-mac.zip
-          # Herauslösen des eigentlichen Binaries aus dem .app-Bundle:
-          mv "chrome/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
-          rm -rf "chrome/Google Chrome for Testing.app"
+          if [ -d "chrome/chrome-mac-arm64" ]; then
+            mv "chrome/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
+            rm -rf "chrome/chrome-mac-arm64"
+          elif [ -d "chrome/chrome-mac-x64" ]; then
+            mv "chrome/chrome-mac-x64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing" chrome/chrome
+            rm -rf "chrome/chrome-mac-x64"
+          else
+            echo "No recognized Chrome folder found"
+            exit 1
+          fi
         shell: bash
 
       - name: Download Portable Chrome for Windows
