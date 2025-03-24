@@ -342,23 +342,17 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-extensions")
-    chrome_options.add_argument("--disable-infobars")
-
-    user_data_dir = tempfile.mkdtemp()
-    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
-
-    # Plattformabhängiger Chrome-Pfad:
-    if platform.system() == "Darwin":
-        chrome_options.binary_location = resource_path("chrome/Chrome.app/Contents/MacOS/Google Chrome for Testing")
-    elif platform.system() == "Windows":
-        chrome_options.binary_location = resource_path("chrome/chrome-win64/chrome.exe")
-    else:
-        chrome_options.binary_location = resource_path("chrome/chrome-linux64/chrome")
-
+    chrome_options.add_argument(f'--user-data-dir={tempfile.mkdtemp()}')  # eindeutiges Temp-Verzeichnis
+    
+    # Wichtig: Logging explizit aktivieren
+    caps = webdriver.DesiredCapabilities.CHROME.copy()
+    caps["goog:loggingPrefs"] = {"performance": "ALL"}
+    
+    chrome_options.binary_location = resource_path("chrome/chrome")
     driver_path = resource_path("drivers/chromedriver")
     service = Service(executable_path=driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    driver = webdriver.Chrome(service=service, options=chrome_options, desired_capabilities=caps)
 
     try:
         driver.get(url)
@@ -367,7 +361,6 @@ def get_rendered_html(url):
         logs = driver.get_log("performance")
     finally:
         driver.quit()
-        shutil.rmtree(user_data_dir, ignore_errors=True)
 
     return html, logs
 	
