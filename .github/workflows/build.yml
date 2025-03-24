@@ -30,26 +30,33 @@ jobs:
           pip install -r requirements.txt
           pip install -U --pre "yt-dlp[default]"
 
-      # Schritt 4: **Google Chrome auf die neueste Version aktualisieren**
-      - name: Update Google Chrome on Ubuntu
+      # Schritt 4: **Google Chrome installieren und überprüfen**
+      - name: Install Google Chrome on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
           sudo apt update
           sudo apt install -y google-chrome-stable
+          google-chrome --version || { echo "Google Chrome installation failed"; exit 1; }
 
-      - name: Update Google Chrome on macOS
+      - name: Install Google Chrome on macOS
         if: matrix.os == 'macos-latest'
-        run: brew install --cask google-chrome
+        run: |
+          brew install --cask google-chrome
+          "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version || { echo "Google Chrome installation failed"; exit 1; }
 
-      - name: Update Google Chrome on Windows
+      - name: Install Google Chrome on Windows
         if: matrix.os == 'windows-latest'
-        run: choco upgrade googlechrome -y
+        run: |
+          choco upgrade googlechrome -y
+          if (-Not (Test-Path "C:\Program Files\Google\Chrome\Application\chrome.exe")) { 
+            Write-Error "Google Chrome installation failed"; exit 1 
+          }
 
       # Schritt 5: **Manuelle Installation von ChromeDriver**
       - name: Install ChromeDriver on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
-          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1)
+          CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1) || { echo "Failed to get Chrome version"; exit 1; }
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
           unzip chromedriver_linux64.zip
@@ -59,7 +66,7 @@ jobs:
       - name: Install ChromeDriver on macOS
         if: matrix.os == 'macos-latest'
         run: |
-          CHROME_VERSION=$("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version | awk '{print $3}' | cut -d '.' -f 1)
+          CHROME_VERSION=$("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version | awk '{print $3}' | cut -d '.' -f 1) || { echo "Failed to get Chrome version"; exit 1; }
           DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
           wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_mac64.zip"
           unzip chromedriver_mac64.zip
@@ -69,7 +76,9 @@ jobs:
       - name: Install ChromeDriver on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          $chromeVersion = (Get-Command "C:\Program Files\Google\Chrome\Application\chrome.exe").FileVersionInfo.FileVersion.Split(".")[0]
+          $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
+          if (-Not (Test-Path $chromePath)) { Write-Error "Google Chrome not found"; exit 1 }
+          $chromeVersion = (Get-Command $chromePath).FileVersionInfo.FileVersion.Split(".")[0]
           $driverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeVersion"
           Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$driverVersion/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
           Expand-Archive -Path "chromedriver_win32.zip" -DestinationPath "C:\Windows\System32"
@@ -79,11 +88,11 @@ jobs:
       - name: Check Chrome and ChromeDriver versions
         run: |
           if [[ "$RUNNER_OS" == "macOS" ]]; then
-            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version
+            "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version || echo "Chrome not found"
           else
-            google-chrome --version
+            google-chrome --version || echo "Chrome not found"
           fi
-          chromedriver --version
+          chromedriver --version || echo "ChromeDriver not found"
 
       # Schritt 7: (Optional) Ausführen von Tests
       - name: Run Tests
