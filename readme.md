@@ -1,86 +1,125 @@
-# TMP-Networks-Search
+# TMP-Networks-Search 🔍🌐
 
-TMP-Networks-Search ist ein fortschrittlicher Webcrawler mit integrierter Volltextsuche (FTS5), Video- und Medienindexierung sowie einem automatischen Crawling-Modus. Entwickelt von der TMP-SYSTEM-SERVICE GmbH, bietet dieses Projekt umfassende Funktionen zur Erstellung einer individuellen Suchmaschine mit flexiblen Indexierungsoptionen.
-
----
-
-## 🚀 Funktionen
-
-- **Automatisiertes und Manuelles Crawling:**
-  - Manueller Modus für gezielte URL-Indexierung
-  - Automatischer Modus für umfangreiche Domain-Indexierung
-
-- **Volltextsuche (FTS5):**
-  - Präzise und schnelle Suchergebnisse
-  - Unterstützung verschiedener Suchfelder (Titel, Beschreibung, Keywords, Inhalt)
-
-- **Medien- und Videoindexierung:**
-  - Indexierung von Bildern und Videos (inkl. Unterstützung von HLS-Streams, HEVC/H.265)
-  - Video-Informationsextraktion via yt-dlp
-
-- **Offline Snapshot:**
-  - Speicherung und Anzeige der HTML-Seiten als Offline-Version
-  - Möglichkeit, reine Text-Versionen der gespeicherten Inhalte anzuzeigen
-
-- **Peer-to-Peer Crawling:**
-  - API-Integration zur Verteilung von Suchaufgaben auf externe Crawler
-
-- **Performance-Optimierung:**
-  - Paralleles Crawling mit Multithreading
-  - Selenium für dynamisches Rendern von Inhalten
+**TMP-Networks-Search** ist eine leistungsstarke, eigenständige Suchmaschinenlösung mit lokalem Web-Crawling, Volltextsuche (FTS5), Video-/Bild-Erkennung, Offline-Snapshots und Peer-to-Peer-Aufgabenverteilung – entwickelt von der **TMP-SYSTEM-SERVICE GmbH**.
 
 ---
 
-## 🛠️ Technologie-Stack
+## 🚀 Features
 
-- **Backend:** Python, Flask
-- **Datenbank:** SQLite (mit FTS5-Erweiterung)
-- **Frontend:** HTML, CSS, JavaScript
-- **Crawler:** Selenium, yt-dlp, Requests, BeautifulSoup
+- 🌍 **Webcrawler mit Tiefensuche** und Threading
+- 📄 **FTS5-Volltextsuche** in Titeln, Beschreibungen, Keywords & Content
+- 🖼️ **Bild- & Videoerkennung inkl. HLS, yt-dlp & HEVC-Support**
+- 🔒 **Offline-Snapshots** (HTML & Nur-Text)
+- 🔧 **Manueller und automatischer Crawl-Modus**
+- 🤖 **Verteilte Task-Verarbeitung via REST API**
+- 🖥️ **Übersichtliches Web-Interface (Flask-basiert)**
+- 📦 **Lokale SQLite-Datenbank mit FTS & Triggern**
 
 ---
 
-## 📦 Installation
+## 📸 Screenshots
 
-### 1. Repository klonen
-```bash
-git clone https://github.com/dein-benutzername/TMP-Networks-Search.git
-cd TMP-Networks-Search
-```
+*(optional – füge hier Screenshots hinzu, z. B. von der Startseite, Suchergebnissen, Bild-/Videosuche)*
 
-### 2. Abhängigkeiten installieren
+---
+
+## 🛠️ Installation
+
+### 🔧 Voraussetzungen
+
+- Python 3.9+
+- Google Chrome for Testing
+- `chromedriver` (passend zur Chrome-Version)
+- Optional: `yt-dlp`, `selenium`, `flask`, `beautifulsoup4` usw.
+
+### 📦 Abhängigkeiten installieren
+
 ```bash
 pip install -r requirements.txt
 ```
 
-### 3. Chrome und Chromedriver bereitstellen
-- Stelle sicher, dass Google Chrome und Chromedriver im Ordner `chrome/` und `drivers/` verfügbar sind.
+Falls keine `requirements.txt` vorhanden:
 
-### 4. Anwendung starten
 ```bash
-python main.py
+pip install flask selenium beautifulsoup4 yt-dlp requests urllib3
 ```
-Die App läuft standardmäßig auf `http://0.0.0.0:7001`
+
+### 📁 Verzeichnisstruktur vorbereiten
+
+```plaintext
+project/
+├── chrome/
+│   └── chrome/
+│       └── chrome.exe (Windows) oder Chrome.app/... (Mac/Linux)
+├── drivers/
+│   └── chromedriver[.exe]
+├── templates/
+│   └── *.html (werden beim ersten Start automatisch erzeugt)
+├── web_index.db (wird automatisch erstellt)
+└── app.py
+```
 
 ---
 
-## 🖥️ Benutzeroberfläche
-- **Websuche:** Präzise Suchergebnisse anzeigen und filtern.
-- **Bild- und Videosuche:** Dedizierte Seiten für Medieninhalte.
-- **Crawler-Status:** Überblick über den aktuellen Status und die Warteschlange.
-- **Automodus:** Bequeme Verwaltung und Aktivierung automatischer Crawling-Prozesse.
+## ▶️ Nutzung
+
+### Starten der App
+
+```bash
+python app.py
+```
+
+Die Weboberfläche ist dann erreichbar unter:  
+📍 http://localhost:7001
 
 ---
 
-## 📜 Lizenz
-Dieses Projekt steht unter der MIT-Lizenz - siehe [LICENSE](LICENSE) für weitere Details.
+## 🌐 Funktionen im Überblick
+
+| Funktion              | Beschreibung                                      |
+|-----------------------|---------------------------------------------------|
+| 🔎 Websuche            | Volltextsuche mit Relevanzbewertung (BM25)       |
+| 🖼️ Bildersuche         | Suche in Alt-Text & URL                          |
+| 🎞️ Videosuche          | HLS, mp4, yt-dlp & Blob Detection                |
+| 🧠 Auto-Modus          | Crawler läuft automatisch mit Start-URL         |
+| 🛠️ Manuelle Indexierung| Einzelne URL tiefer crawlen und indexieren      |
+| 🔄 Offline-Modus       | Snapshot-Ansicht & Nur-Text-Modus                |
+| 🤝 Peer-Netzwerk       | Aufgaben-Verteilung über mehrere Crawler         |
 
 ---
 
-## 📞 Support
-Für Fragen, Anregungen oder Feedback öffne gerne ein Issue oder kontaktiere uns direkt.
+## 📡 API-Endpunkte
+
+| Endpoint                     | Beschreibung                               |
+|-----------------------------|--------------------------------------------|
+| `/create_task`              | Externe Task erstellen                     |
+| `/get_task_results/<id>`    | Ergebnisse eines Tasks abfragen            |
+| `/api/pages`                | Alle indexierten Seiten abrufen            |
+| `/api/search?q=...`         | API-basierte Suche                         |
 
 ---
 
-**Entwickelt von [TMP-SYSTEM-SERVICE GmbH](https://www.tmp-networks.de)**
+## 👨‍💻 Entwicklerinfo
 
+**Autor:** [Marek Templin / TMP-SYSTEM-SERVICE GmbH](https://www.tmp-networks.de)  
+📧 Kontakt: info@tmp-networks.de
+
+---
+
+## ⚠️ Hinweise
+
+- Dieses Projekt ist **kein Ersatz für Google**, sondern eine **Forschungslösung und eigenständige Suchmaschine**.
+- **Achtung bei Robots.txt**: Im Auto-Modus kann sie ignoriert werden – bitte mit Bedacht einsetzen.
+- `yt-dlp` wird verwendet, um eingebettete Videos zu extrahieren. Bitte respektiere Urheberrechte.
+
+---
+
+## 📄 Lizenz
+
+MIT License – siehe [`LICENSE`](LICENSE)
+
+---
+
+## 🌟 Wenn dir das Projekt gefällt...
+
+Gib dem Repository ein ⭐ auf GitHub oder teile es weiter!
