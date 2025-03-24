@@ -54,10 +54,8 @@ jobs:
       - name: Install Google Chrome on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
-          wget https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb
           sudo apt update
-          sudo apt install -y ./google-chrome-stable_current_amd64.deb
-          rm google-chrome-stable_current_amd64.deb
+          sudo apt install -y google-chrome-stable
 
       - name: Install Google Chrome on macOS
         if: matrix.os == 'macos-latest'
@@ -67,11 +65,11 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: choco install googlechrome -y
 
-      # Schritt 6: Einrichten von ChromeDriver (Version 2 verwenden)
+      # Schritt 6: Einrichten von ChromeDriver (Alternative zu setup-chromedriver@v2)
       - name: Setup ChromeDriver
-        uses: actions/setup-chromedriver@v2
+        uses: browser-actions/setup-chromedriver@v1
         with:
-          chromedriver-version: 'latest'
+          version: 'latest'
 
       # Schritt 7: Überprüfen der yt-dlp Installation
       - name: Check yt-dlp version
