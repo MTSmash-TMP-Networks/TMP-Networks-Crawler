@@ -1,5 +1,4 @@
 name: CI Build
-
 on:
   push:
     branches: [ main ]
@@ -31,6 +30,7 @@ jobs:
           pip install -U --pre "yt-dlp[default]"
 
       # Schritt 4: **Google Chrome installieren und überprüfen**
+      ## Installieren auf Ubuntu
       - name: Install Google Chrome on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
@@ -38,51 +38,99 @@ jobs:
           sudo apt install -y google-chrome-stable
           google-chrome --version || { echo "Google Chrome installation failed"; exit 1; }
 
+      ## Installieren auf macOS
       - name: Install Google Chrome on macOS
         if: matrix.os == 'macos-latest'
         run: |
           brew install --cask google-chrome
           "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version || { echo "Google Chrome installation failed"; exit 1; }
 
+      ## Installieren auf Windows
       - name: Install Google Chrome on Windows
         if: matrix.os == 'windows-latest'
         run: |
           choco upgrade googlechrome -y
-          if (-Not (Test-Path "C:\Program Files\Google\Chrome\Application\chrome.exe")) { 
-            Write-Error "Google Chrome installation failed"; exit 1 
+          if (-Not (Test-Path "C:\Program Files\Google\Chrome\Application\chrome.exe")) {
+            Write-Error "Google Chrome installation failed"; exit 1
           }
 
       # Schritt 5: **Manuelle Installation von ChromeDriver**
+      ## Installieren auf Ubuntu
       - name: Install ChromeDriver on Ubuntu
         if: matrix.os == 'ubuntu-latest'
         run: |
+          set -e
+          sudo apt install -y wget unzip
           CHROME_VERSION=$(google-chrome --version | awk '{print $3}' | cut -d '.' -f 1) || { echo "Failed to get Chrome version"; exit 1; }
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip"
-          unzip chromedriver_linux64.zip
-          sudo mv chromedriver /usr/local/bin/
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") || { echo "Failed to get ChromeDriver version"; exit 1; }
+          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_linux64.zip" || { echo "Failed to download ChromeDriver"; exit 1; }
+          unzip chromedriver_linux64.zip || { echo "Failed to unzip ChromeDriver"; exit 1; }
+          sudo mv chromedriver /usr/local/bin/ || { echo "Failed to move ChromeDriver"; exit 1; }
           rm chromedriver_linux64.zip
 
+      ## Installieren auf macOS
       - name: Install ChromeDriver on macOS
         if: matrix.os == 'macos-latest'
         run: |
+          set -e
+          brew install wget
+          # Überprüfen, ob Google Chrome installiert ist
+          if [ ! -f "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" ]; then
+            echo "Google Chrome is not installed."
+            exit 1
+          fi
+
+          # Ermitteln der Chrome-Version
           CHROME_VERSION=$("/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --version | awk '{print $3}' | cut -d '.' -f 1) || { echo "Failed to get Chrome version"; exit 1; }
-          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION")
-          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_mac64.zip"
-          unzip chromedriver_mac64.zip
-          sudo mv chromedriver /usr/local/bin/
+
+          echo "Google Chrome Version: $CHROME_VERSION"
+
+          # Ermitteln der kompatiblen ChromeDriver-Version
+          DRIVER_VERSION=$(curl -s "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$CHROME_VERSION") || { echo "Failed to get ChromeDriver version"; exit 1; }
+
+          echo "ChromeDriver Version: $DRIVER_VERSION"
+
+          # Download und Installation des ChromeDrivers
+          wget -q "https://chromedriver.storage.googleapis.com/$DRIVER_VERSION/chromedriver_mac64.zip" || { echo "Failed to download ChromeDriver"; exit 1; }
+          unzip chromedriver_mac64.zip || { echo "Failed to unzip ChromeDriver"; exit 1; }
+          sudo mv chromedriver /usr/local/bin/ || { echo "Failed to move ChromeDriver"; exit 1; }
           rm chromedriver_mac64.zip
 
+          echo "ChromeDriver installed successfully."
+
+      ## Installieren auf Windows
       - name: Install ChromeDriver on Windows
         if: matrix.os == 'windows-latest'
         run: |
+          Set-StrictMode -Version Latest
+          Set-ExecutionPolicy Bypass -Scope Process -Force
+          $ErrorActionPreference = "Stop"
+
+          # Installieren von wget falls nicht vorhanden (optional)
+          if (-not (Get-Command wget -ErrorAction SilentlyContinue)) {
+            Invoke-WebRequest -Uri "https://eternallybored.org/misc/wget/releases/wget-1.21.1-win64.zip" -OutFile "wget.zip"
+            Expand-Archive -Path "wget.zip" -DestinationPath ".\wget"
+            $env:Path += ";$PWD\wget"
+            Remove-Item "wget.zip"
+          }
+
           $chromePath = "C:\Program Files\Google\Chrome\Application\chrome.exe"
-          if (-Not (Test-Path $chromePath)) { Write-Error "Google Chrome not found"; exit 1 }
-          $chromeVersion = (Get-Command $chromePath).FileVersionInfo.FileVersion.Split(".")[0]
-          $driverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeVersion"
-          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$driverVersion/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip"
-          Expand-Archive -Path "chromedriver_win32.zip" -DestinationPath "C:\Windows\System32"
+          if (-Not (Test-Path $chromePath)) {
+            Write-Error "Google Chrome not found"; exit 1
+          }
+
+          $chromeVersion = (Get-Command $chromePath).FileVersionInfo.ProductVersion.Split(".")[0]
+          Write-Output "Google Chrome Version: $chromeVersion"
+
+          $driverVersion = Invoke-RestMethod -Uri "https://chromedriver.storage.googleapis.com/LATEST_RELEASE_$chromeVersion" || { Write-Error "Failed to get ChromeDriver version"; exit 1 }
+
+          Write-Output "ChromeDriver Version: $driverVersion"
+
+          Invoke-WebRequest -Uri "https://chromedriver.storage.googleapis.com/$driverVersion/chromedriver_win32.zip" -OutFile "chromedriver_win32.zip" || { Write-Error "Failed to download ChromeDriver"; exit 1; }
+          Expand-Archive -Path "chromedriver_win32.zip" -DestinationPath "C:\chromedriver" || { Write-Error "Failed to unzip ChromeDriver"; exit 1; }
+          Move-Item "C:\chromedriver\chromedriver.exe" "C:\Windows\System32\" -Force || { Write-Error "Failed to move ChromeDriver"; exit 1; }
           Remove-Item "chromedriver_win32.zip"
+          Remove-Item -Recurse -Force "C:\chromedriver"
 
       # Schritt 6: Überprüfen der Chrome- und ChromeDriver-Versionen
       - name: Check Chrome and ChromeDriver versions
@@ -102,14 +150,14 @@ jobs:
       - name: Run Application on Unix
         if: matrix.os != 'windows-latest'
         run: |
-          python main.py &
+          nohup python main.py &
           sleep 5
           curl -I http://localhost:7001 || exit 1
 
-      # Schritt 8: Anwendung starten und überprüfen (Windows)
+      # Schritt 9: Anwendung starten und überprüfen (Windows)
       - name: Run Application on Windows
         if: matrix.os == 'windows-latest'
         run: |
-          start /B python main.py
-          timeout /T 5
-          curl -I http://localhost:7001 || exit 1
+          Start-Process -NoNewWindow -FilePath "python" -ArgumentList "main.py"
+          Start-Sleep -Seconds 5
+          Invoke-WebRequest -Uri "http://localhost:7001" -UseBasicParsing || { Write-Error "Application did not start correctly"; exit 1 }
