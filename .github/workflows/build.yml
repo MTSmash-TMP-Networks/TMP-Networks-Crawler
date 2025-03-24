@@ -1,4 +1,4 @@
-name: Build Executable
+name: Build Executable with Dynamic Templates
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout Repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v3
 
       - name: Setup Python 3.11
         uses: actions/setup-python@v4
@@ -30,14 +30,29 @@ jobs:
           if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         shell: bash
 
-      # Für Linux und macOS: Verwende ':' als Trenner für --add-data
-      - name: Build Executable on Unix (Linux/macOS)
+      # Schritt hinzugefügt: Templates dynamisch generieren (main.py einmal starten und nach kurzer Zeit stoppen)
+      - name: Generate Templates dynamically
+        run: |
+          python main.py &
+          PID=$!
+          sleep 10  # Warte einige Sekunden, bis Templates erstellt wurden
+          kill $PID || true
+        shell: bash
+
+      # Prüfen, ob Templates existieren (Debugging-Zwecke)
+      - name: Verify Templates Folder
+        run: |
+          ls templates
+        shell: bash
+
+      # Build für Unix (Linux/macOS)
+      - name: Build Executable on Unix
         if: runner.os != 'Windows'
         run: |
           pyinstaller --onefile --add-data "templates:templates" main.py
         shell: bash
 
-      # Für Windows: Verwende ';' als Trenner für --add-data
+      # Build für Windows
       - name: Build Executable on Windows
         if: runner.os == 'Windows'
         run: |
@@ -45,7 +60,7 @@ jobs:
         shell: cmd
 
       - name: Upload Executable Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v2
         with:
           name: executable-${{ matrix.os }}
           path: dist/main*
