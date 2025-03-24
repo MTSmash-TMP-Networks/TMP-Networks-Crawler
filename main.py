@@ -3,6 +3,7 @@ warnings.filterwarnings("ignore", message="resource_tracker: There appear to be"
 
 import requests
 import logging
+import tempfile
 import sqlite3
 import time
 import threading
@@ -337,14 +338,14 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/98.0.4758.102 Safari/537.36")
+                                "AppleWebKit/537.36 (KHTML, wie Gecko) Chrome/98.0.4758.102 Safari/537.36")
     chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
     
-    # Verwende den eingebundenen portablen Browser
-    # Hinweis: Passe den Pfad und Dateinamen ggf. für Windows an (z.B. "chrome/chrome.exe")
+    # Erzeuge einen eindeutigen User Data Directory:
+    chrome_options.add_argument(f"--user-data-dir={tempfile.mkdtemp()}")
+
     chrome_options.binary_location = resource_path("chrome/chrome")
     
-    # Nutze den eingebundenen ChromeDriver
     driver_path = resource_path("drivers/chromedriver")
     service = Service(executable_path=driver_path)
     driver = webdriver.Chrome(service=service, options=chrome_options)
