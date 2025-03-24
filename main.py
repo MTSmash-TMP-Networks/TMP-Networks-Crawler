@@ -336,6 +336,24 @@ def poll_for_tasks():
         time.sleep(5)
 
 # --- Funktionen für Crawling, Rendering, Speicherung, etc. ---
+import platform
+import tempfile
+import shutil
+import time
+import sys
+import os
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+
+def resource_path(relative_path):
+    """Ermittelt den absoluten Pfad zu einer Ressource, egal ob die Anwendung gebündelt ist oder nicht."""
+    try:
+        base_path = sys._MEIPASS
+    except AttributeError:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)
+
 def get_rendered_html(url):
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
@@ -346,7 +364,7 @@ def get_rendered_html(url):
     # Temporärer User-Data-Ordner für Chrome
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
-
+    
     system = platform.system()
     if system == "Windows":
         chrome_binary = resource_path("chrome/chrome/chrome.exe")
@@ -357,20 +375,26 @@ def get_rendered_html(url):
     else:  # Linux
         chrome_binary = resource_path("chrome/chrome/chrome")
         driver_path = resource_path("drivers/chromedriver")
-
+    
     chrome_options.binary_location = chrome_binary
     service = Service(driver_path)
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-
+    
     try:
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         driver.get(url)
-        time.sleep(3)
+        time.sleep(3)  # Warten, bis die Seite vollständig geladen ist
         html = driver.page_source
-        logs = driver.get_log("performance")
+        try:
+            logs = driver.get_log("performance")
+        except Exception:
+            logs = []
+    except Exception as e:
+        print(f"Fehler beim Rendern der URL {url}: {e}")
+        raise
     finally:
         driver.quit()
         shutil.rmtree(user_data_dir, ignore_errors=True)
-
+    
     return html, logs
 	
 def extract_video_url_from_logs(logs):
