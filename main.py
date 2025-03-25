@@ -344,13 +344,10 @@ def get_rendered_html(url):
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
-    
     user_data_dir = tempfile.mkdtemp()
     chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
-    
     system = platform.system()
     logging.info(f"Erkanntes Betriebssystem: {system}")
-    
     if system == "Windows":
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome.exe"))
         driver_path = resource_path(os.path.join("drivers", "chromedriver.exe"))
@@ -360,19 +357,16 @@ def get_rendered_html(url):
     else:  # Linux
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome"))
         driver_path = resource_path(os.path.join("drivers", "chromedriver"))
-    
     logging.info(f"Chrome Binary Pfad: {chrome_binary}")
     logging.info(f"ChromeDriver Pfad: {driver_path}")
-    
     chrome_options.binary_location = chrome_binary
-    
     if system in ["Darwin", "Linux"]:
         if not os.access(chrome_binary, os.X_OK):
             logging.info(f"Setze Ausführungsrechte für {chrome_binary}")
             os.chmod(chrome_binary, 0o755)
-    
+
     service = Service(driver_path)
-    
+    driver = None
     try:
         logging.info("Initialisiere WebDriver...")
         driver = webdriver.Chrome(service=service, options=chrome_options)
@@ -387,13 +381,14 @@ def get_rendered_html(url):
             logging.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
             logs = []
     except Exception as e:
-        logging.error(f"Fehler beim Rendern der URL {url}: {e}", exc_info=True)
+        logging.error(f"Fehler beim Rendern der URL {url} mit Selenium: {e}", exc_info=True)
         raise
     finally:
         logging.info("Beende WebDriver und bereinige temporäre Dateien.")
-        driver.quit()
+        if driver is not None:
+            driver.quit()
         shutil.rmtree(user_data_dir, ignore_errors=True)
-    
+
     return html, logs
 	
 def extract_video_url_from_logs(logs):
