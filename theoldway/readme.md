@@ -1,6 +1,6 @@
 # 📌 Search Engine Projekt (Oldway) 
 
-Eine einfache Suchmaschine, die lokal auf deinem Rechner läuft.  
+Eine einfache Suchmaschine, die lokal auf deinem Rechner läuft. Bei diesem Script muss Google Chrome vorinstalliert sein. Verbraucht weniger Ressourcen als die Standard-Version.
 
 ## 🚀 Installation  
 
