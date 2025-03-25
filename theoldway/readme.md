@@ -1,4 +1,4 @@
-# 📌 Search Engine Projekt  
+# 📌 Search Engine Projekt (Oldway) 
 
 Eine einfache Suchmaschine, die lokal auf deinem Rechner läuft.  
 
