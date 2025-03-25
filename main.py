@@ -629,7 +629,7 @@ def auto_crawl_worker():
             with auto_mode_lock:
                 current_auto_url = None
             auto_queue.task_done()
-            time.sleep(0.1)
+            time.sleep(1)
 
 def format_size(size):
     for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
