@@ -603,7 +603,7 @@ auto_queue = queue.Queue()
 current_auto_url = None
 auto_mode_lock = threading.Lock()
 auto_mode_start_url = ""
-MAX_WORKERS = 10
+MAX_WORKERS = 2
 
 def auto_crawl_worker():
     global current_auto_url
