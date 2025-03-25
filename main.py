@@ -29,6 +29,7 @@ import yt_dlp
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 def resource_path(relative_path):
     """Ermittle den absoluten Pfad zu einer Ressource, auch wenn die App gebündelt ist."""
@@ -369,7 +370,9 @@ def get_rendered_html(url):
     driver = None
     try:
         logging.info("Initialisiere WebDriver...")
-        driver = webdriver.Chrome(service=service, options=chrome_options)
+        capabilities = DesiredCapabilities.CHROME.copy()
+        capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
+        driver = webdriver.Chrome(service=service, options=chrome_options, desired_capabilities=capabilities)
         logging.info(f"Navigiere zu URL: {url}")
         driver.get(url)
         time.sleep(3)
