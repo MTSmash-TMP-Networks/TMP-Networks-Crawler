@@ -29,7 +29,6 @@ import yt_dlp
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
 
 def resource_path(relative_path):
     """Ermittle den absoluten Pfad zu einer Ressource, auch wenn die App gebündelt ist."""
@@ -339,16 +338,27 @@ def poll_for_tasks():
         time.sleep(5)
 
 # --- Funktionen für Crawling, Rendering, Speicherung, etc. ---
-def get_rendered_html(url):
+def get_rendered_html(url, enable_logs=True):
     chrome_options = Options()
     chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    
+    # Schnellere Ladezeiten: Wartet nicht auf Bilder oder iframes
+    chrome_options.set_capability("pageLoadStrategy", "eager")
+    
+    # Performance Logs aktivieren (nur wenn gewünscht)
+    if enable_logs:
+        chrome_options.set_capability("goog:loggingPrefs", {"performance": "ALL"})
+
+    # User-Daten temporär halten (isolierte Instanz)
     user_data_dir = tempfile.mkdtemp()
-    chrome_options.add_argument(f'--user-data-dir={user_data_dir}')
+    chrome_options.add_argument(f"--user-data-dir={user_data_dir}")
+    
     system = platform.system()
     logging.info(f"Erkanntes Betriebssystem: {system}")
+    
     if system == "Windows":
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome.exe"))
         driver_path = resource_path(os.path.join("drivers", "chromedriver.exe"))
@@ -358,41 +368,46 @@ def get_rendered_html(url):
     else:  # Linux
         chrome_binary = resource_path(os.path.join("chrome", "chrome", "chrome"))
         driver_path = resource_path(os.path.join("drivers", "chromedriver"))
+    
     logging.info(f"Chrome Binary Pfad: {chrome_binary}")
     logging.info(f"ChromeDriver Pfad: {driver_path}")
+    
     chrome_options.binary_location = chrome_binary
-    if system in ["Darwin", "Linux"]:
-        if not os.access(chrome_binary, os.X_OK):
-            logging.info(f"Setze Ausführungsrechte für {chrome_binary}")
-            os.chmod(chrome_binary, 0o755)
+    
+    if system in ["Darwin", "Linux"] and not os.access(chrome_binary, os.X_OK):
+        logging.info(f"Setze Ausführungsrechte für {chrome_binary}")
+        os.chmod(chrome_binary, 0o755)
 
     service = Service(driver_path)
     driver = None
+    logs = []
+
     try:
         logging.info("Initialisiere WebDriver...")
-        capabilities = DesiredCapabilities.CHROME.copy()
-        capabilities["goog:loggingPrefs"] = {"performance": "ALL"}
-        driver = webdriver.Chrome(service=service, options=chrome_options, desired_capabilities=capabilities)
+        driver = webdriver.Chrome(service=service, options=chrome_options)
         logging.info(f"Navigiere zu URL: {url}")
         driver.get(url)
         time.sleep(3)
         html = driver.page_source
-        try:
-            logs = driver.get_log("performance")
-            logging.info("Performance Logs abgerufen.")
-        except Exception as log_error:
-            logging.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
-            logs = []
+
+        if enable_logs:
+            try:
+                logs = driver.get_log("performance")
+                logging.info("Performance Logs abgerufen.")
+            except Exception as log_error:
+                logging.warning(f"Fehler beim Abrufen der Performance Logs: {log_error}")
+                logs = []
     except Exception as e:
         logging.error(f"Fehler beim Rendern der URL {url} mit Selenium: {e}", exc_info=True)
         raise
     finally:
         logging.info("Beende WebDriver und bereinige temporäre Dateien.")
-        if driver is not None:
+        if driver:
             driver.quit()
         shutil.rmtree(user_data_dir, ignore_errors=True)
 
     return html, logs
+
 	
 def extract_video_url_from_logs(logs):
     for entry in logs:
