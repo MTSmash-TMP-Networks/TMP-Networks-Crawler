@@ -1166,7 +1166,7 @@ auto_mode_html = r"""<!DOCTYPE html>
         {% endif %}
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource
     </div>
 </body>
 </html>
@@ -1210,7 +1210,7 @@ index_html = r"""<!DOCTYPE html>
 <body>
     """ + navbar_html + r"""
     <div class="log-container">
-        <h2>Versions Log - TMP-Networks Search</h2>
+        <h2>Versions Log - TMP-Networks Search (Projekt Blackbird)</h2>
         <ul>
             <li>Version 1.0: Erste Veröffentlichung der Webscrapper APP</li>
             <li>Version 1.1: Verbesserte Threading und Fehlerbehandlung</li>
@@ -1224,10 +1224,11 @@ index_html = r"""<!DOCTYPE html>
             <li>Version 1.9: Verbesserte Videoindexierung mit Best-Quality Auswahl via yt_dlp und Performance-Log-Auswertung</li>
             <li>Version 2.0: Volltextsuche (FTS5) integriert für präzisere Suchergebnisse</li>
 	    <li>Version 2.1: API Funktion hinzugefügt</li>
+            <li>Version 2.1.2: Linux 64 Bit, Windows 64 Bit und Mac Arm64 (M1/M2) Support. Workflow passt nun endlich!</li>
         </ul>
     </div></br>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1260,7 +1261,7 @@ manual_index_html = r"""<!DOCTYPE html>
         </form>
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1318,7 +1319,7 @@ crawler_status_html = r"""<!DOCTYPE html>
         </div>
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1426,7 +1427,7 @@ search_results_html = r"""<!DOCTYPE html>
         {% endif %}
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1489,7 +1490,7 @@ search_images_html = r"""<!DOCTYPE html>
         <br>
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1571,7 +1572,7 @@ search_videos_html = r"""<!DOCTYPE html>
         <br>
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1685,7 +1686,7 @@ search_results_task_html = r"""<!DOCTYPE html>
         {% endif %}
     </div>
     <div class="footer">
-        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH
+        &copy; <script>document.write(new Date().getFullYear());</script> TMP-SYSTEM-SERVICE GmbH - Version 2.1.2 - OpenSource - Codename: Blackbird
     </div>
 </body>
 </html>
@@ -1703,7 +1704,7 @@ task_status_html = r"""<!DOCTYPE html>
            .timeout-message { color: red; font-size: 18px; margin-top: 20px; }
        </style>
        <script>
-   const TIMEOUT = 30000; // Max 30 Sek
+   const TIMEOUT = 60000; // Max 60 Sek
    let startTime = Date.now();
    
    function pollResults() {
@@ -1727,7 +1728,7 @@ task_status_html = r"""<!DOCTYPE html>
    <body>
        <div id="loader" class="loader">Die Suchaufgabe wird an die Server verteilt. Bitte warten...</div>
        <div id="timeout" class="timeout-message" style="display: none;">
-           Es wurden leider keine Ergebnisse innerhalb von 30 Sekunden gefunden.
+           Es wurden leider keine Ergebnisse innerhalb von 60 Sekunden gefunden.
            <br>
            <a href="/">Zurück zur Startseite</a>
        </div>
