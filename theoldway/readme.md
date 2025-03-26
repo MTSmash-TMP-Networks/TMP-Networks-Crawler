@@ -9,14 +9,14 @@ Stelle sicher, dass Google Chrome auf deinem System installiert ist:
 
 - **Linux:**  
   ```bash
-  sudo apt-get install google-chrome
+  sudo apt-get install chromium-browser
   ```  
 - **Mac:**  
   ```bash
-  brew install --cask google-chrome
+  brew install --cask chromium
   ```  
 - **Windows:**  
-  [Google Chrome herunterladen](https://www.google.com/chrome/) und installieren.  
+  [Google Chromium herunterladen]([https://www.google.com/chrome/](https://chromium.woolyss.com/)) und installieren.  
 
 ### 2️⃣ Python 3.11 installieren  
 Falls Python 3.11 noch nicht installiert ist, lade es von [python.org](https://www.python.org/downloads/) herunter und installiere es.  
