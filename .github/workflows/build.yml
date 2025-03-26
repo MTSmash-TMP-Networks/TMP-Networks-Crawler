@@ -42,7 +42,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p drivers
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chromedriver-linux64.zip -O chromedriver.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/linux64/chromedriver-linux64.zip -O chromedriver.zip
           unzip chromedriver.zip -d drivers
           mv drivers/chromedriver-linux64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
@@ -53,7 +53,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p drivers
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
           unzip chromedriver.zip -d drivers
           mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
@@ -64,7 +64,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir drivers
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/win64/chromedriver-win64.zip" -OutFile "chromedriver.zip"
           Expand-Archive chromedriver.zip -DestinationPath drivers
           Move-Item drivers/chromedriver-win64/chromedriver.exe drivers/chromedriver.exe
           Remove-Item -Recurse drivers/chromedriver-win64, chromedriver.zip
@@ -74,7 +74,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           mkdir -p chrome
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/linux64/chrome-linux64.zip -O chrome.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/linux64/chrome-linux64.zip -O chrome.zip
           unzip chrome.zip -d chrome
           mv chrome/chrome-linux64 chrome/chrome
           chmod +x chrome/chrome/chrome
@@ -85,7 +85,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p chrome
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/mac-x64/chrome-mac-x64.zip -O chrome.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-x64/chrome-mac-x64.zip -O chrome.zip
           unzip chrome.zip -d chrome
           mv "chrome/chrome-mac-x64/Google Chrome for Testing.app" "chrome/Chrome.app"
           chmod -R +x "chrome/Chrome.app/Contents/MacOS/"
@@ -96,7 +96,7 @@ jobs:
         if: runner.os == 'Windows'
         run: |
           mkdir chrome
-          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6998.165/win64/chrome-win64.zip" -OutFile "chrome.zip"
+          Invoke-WebRequest -Uri "https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/win64/chrome-win64.zip" -OutFile "chrome.zip"
           Expand-Archive chrome.zip -DestinationPath chrome
           Move-Item chrome/chrome-win64 chrome/chrome
           Remove-Item chrome.zip
