@@ -104,7 +104,7 @@ Die Weboberfläche ist dann erreichbar unter:
 
 ## ⚠️ Hinweise
 
-- Dieses Projekt ist **kein Ersatz für Google**, sondern eine **Forschungslösung und eigenständige Suchmaschine** für interne Netzwerke.
+- Dieses Projekt ist **kein Ersatz für Google**, sondern eine **Forschungslösung und eigenständige Suchmaschine** für interne Netzwerke (auch im Offline Bereich).
 - **Achtung bei Robots.txt**: Im Auto-Modus kann sie ignoriert werden – bitte mit Bedacht einsetzen.
 - `yt-dlp` wird verwendet, um eingebettete Videos zu extrahieren. Bitte respektiere Urheberrechte.
 
