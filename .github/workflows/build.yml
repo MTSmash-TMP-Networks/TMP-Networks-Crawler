@@ -53,7 +53,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p drivers
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-x64/chromedriver-mac-x64.zip -O chromedriver.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-arm64/chrome-mac-arm64.zip -O chromedriver.zip
           unzip chromedriver.zip -d drivers
           mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
@@ -85,7 +85,7 @@ jobs:
         if: runner.os == 'macOS'
         run: |
           mkdir -p chrome
-          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-x64/chrome-mac-x64.zip -O chrome.zip
+          wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
           unzip chrome.zip -d chrome
           mv "chrome/chrome-mac-x64/Google Chrome for Testing.app" "chrome/Chrome.app"
           chmod -R +x "chrome/Chrome.app/Contents/MacOS/"
