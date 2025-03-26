@@ -55,9 +55,9 @@ jobs:
           mkdir -p drivers
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-arm64/chrome-mac-arm64.zip -O chromedriver.zip
           unzip chromedriver.zip -d drivers
-          mv drivers/chromedriver-mac-x64/chromedriver drivers/chromedriver
+          mv drivers/chromedriver-mac-arm64/chromedriver drivers/chromedriver
           chmod +x drivers/chromedriver
-          rm -rf chromedriver.zip drivers/chromedriver-mac-x64
+          rm -rf chromedriver.zip drivers/chromedriver-mac-arm64
         shell: bash
 
       - name: Download ChromeDriver (Windows)
@@ -87,9 +87,9 @@ jobs:
           mkdir -p chrome
           wget -q https://storage.googleapis.com/chrome-for-testing-public/134.0.6990.2/mac-arm64/chrome-mac-arm64.zip -O chrome.zip
           unzip chrome.zip -d chrome
-          mv "chrome/chrome-mac-x64/Google Chrome for Testing.app" "chrome/Chrome.app"
+          mv "chrome/chrome-mac-arm64/Google Chrome for Testing.app" "chrome/Chrome.app"
           chmod -R +x "chrome/Chrome.app/Contents/MacOS/"
-          rm -rf chrome/chrome-mac-x64 chrome.zip
+          rm -rf chrome/chrome-mac-arm64 chrome.zip
         shell: bash
 
       - name: Download Chrome Portable (Windows)
